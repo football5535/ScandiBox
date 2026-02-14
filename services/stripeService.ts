@@ -5,61 +5,58 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabaseService';
 export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
 export const stripeService = {
-  async checkout(priceId: string) {
+  async checkout(priceId: string): Promise<void> {
     if (!priceId) {
-        console.error("Price ID is missing.");
-        alert("Configuration Error: Price ID is missing.");
-        return;
+        throw new Error("Price ID is missing.");
     }
 
-    try {
-        const returnUrl = window.location.origin;
-        
-        // We use a direct fetch here to ensure we get the JSON error body from the Edge Function
-        // if it fails (e.g. 500 Internal Server Error due to missing environment variables).
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-            },
-            body: JSON.stringify({ priceId, returnUrl })
-        });
+    const returnUrl = window.location.origin;
+    
+    // We use a direct fetch here to ensure we get the JSON error body from the Edge Function
+    // if it fails (e.g. 500 Internal Server Error due to missing environment variables).
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ priceId, returnUrl })
+    });
 
-        if (!response.ok) {
-            let errorMessage = `Error ${response.status}: ${response.statusText}`;
-            try {
-                const errorData = await response.json();
-                if (errorData.error) {
-                    errorMessage = errorData.error;
+    if (!response.ok) {
+        let errorMessage = `Error ${response.status}: ${response.statusText}`;
+        try {
+            const errorData = await response.json();
+            if (errorData.error) {
+                // Clean up the error message if it contains the API key for security/cleanliness in UI
+                errorMessage = errorData.error.replace(/mk_[a-zA-Z0-9]+/, '***');
+                
+                // If the error message from backend (Stripe) indicates auth failure
+                if (errorData.error.includes("Invalid API Key")) {
+                    errorMessage = "Payment System Configuration Error (Invalid API Key)";
                 }
-            } catch (e) {
-                // If JSON parse fails, try text
-                const text = await response.text();
-                if (text) errorMessage = text;
             }
-            throw new Error(errorMessage);
+        } catch (e) {
+            const text = await response.text();
+            if (text) errorMessage = text;
         }
+        throw new Error(errorMessage);
+    }
 
-        const data = await response.json();
-        
-        if (!data.sessionId) {
-            throw new Error("No session ID returned from server.");
-        }
+    const data = await response.json();
+    
+    if (!data.sessionId) {
+        throw new Error("No session ID returned from server.");
+    }
 
-        const stripe = await stripePromise;
-        if (!stripe) {
-            throw new Error("Stripe.js failed to load.");
-        }
+    const stripe = await stripePromise;
+    if (!stripe) {
+        throw new Error("Stripe.js failed to load.");
+    }
 
-        const { error } = await (stripe as any).redirectToCheckout({ sessionId: data.sessionId });
-        if (error) {
-            throw error;
-        }
-
-    } catch (error: any) {
-        console.error("Stripe Checkout Error:", error);
-        alert(`Payment Failed: ${error.message}`);
+    const { error } = await (stripe as any).redirectToCheckout({ sessionId: data.sessionId });
+    if (error) {
+        throw error;
     }
   }
 };
