@@ -54,6 +54,43 @@ export class GeminiService {
     }
   }
 
+  async analyzeReceipt(base64Image: string): Promise<Partial<InventoryItem>[]> {
+      if (!this.ai) return [];
+
+      try {
+        const response = await this.ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: {
+              parts: [
+                  { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
+                  { text: "Analyze this grocery receipt. Extract the purchased food items. Ignore taxes, totals, and non-food items. For each item, guess the best category (Produce, Dairy, Meat, Pantry, Frozen, Beverages, Other), estimate quantity if visible (otherwise '1'), and estimate days until expiry based on the type of food. Return ONLY a JSON array." }
+              ]
+          },
+          config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                  type: Type.ARRAY,
+                  items: {
+                      type: Type.OBJECT,
+                      properties: {
+                          name: { type: Type.STRING },
+                          category: { type: Type.STRING },
+                          quantity: { type: Type.STRING },
+                          daysUntilExpiry: { type: Type.INTEGER }
+                      }
+                  }
+              }
+          }
+        });
+  
+        const text = response.text || "[]";
+        return JSON.parse(cleanJsonString(text));
+      } catch (error) {
+        console.error("Receipt Analysis Failed", error);
+        throw new Error("Failed to analyze receipt.");
+      }
+  }
+
   async suggestRecipes(inventory: InventoryItem[], householdSize: number = 1, dietaryRestrictions: string[] = []): Promise<Recipe[]> {
     if (!this.ai) return [];
     

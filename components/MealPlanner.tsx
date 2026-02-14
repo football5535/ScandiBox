@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { InventoryItem, Recipe, SubscriptionTier, UserProfile } from '../types';
 import { geminiService } from '../services/geminiService';
-import { userService, recipeService, inventoryService, shoppingService } from '../services/supabaseService';
-import { ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Zap, Lock, Printer, Bookmark, Play, CheckCircle, ArrowRight, ArrowLeft, RefreshCw, BoxSelect, ShoppingCart, Check } from 'lucide-react';
+import { userService, recipeService, inventoryService, shoppingService, plannerService } from '../services/supabaseService';
+import { ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Zap, Lock, Printer, Bookmark, Play, CheckCircle, ArrowRight, ArrowLeft, RefreshCw, BoxSelect, ShoppingCart, Check, CalendarPlus, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface MealPlannerProps {
@@ -27,19 +27,25 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
   const [potentialDeductions, setPotentialDeductions] = useState<InventoryItem[]>([]);
   const [selectedForDeduction, setSelectedForDeduction] = useState<Set<string>>(new Set());
 
+  // Plan Addition State
+  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(false);
+  const [recipeToAddToPlan, setRecipeToAddToPlan] = useState<Recipe | null>(null);
+  const [addedToPlanIds, setAddedToPlanIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     userService.getProfile().then(p => { if(p) setUserProfile(p); });
     loadSavedRecipes();
-    // Load local weekly plan if exists
-    const localPlan = localStorage.getItem('scandibox_weekly_plan');
-    if (localPlan) {
-        setRecipes(JSON.parse(localPlan));
-    }
+    loadWeeklyPlan();
   }, []);
 
   const loadSavedRecipes = async () => {
       const saved = await recipeService.getSavedRecipes();
       setSavedRecipes(saved);
+  };
+
+  const loadWeeklyPlan = () => {
+    const plan = plannerService.getPlan();
+    setRecipes(plan);
   };
 
   const generateWeeklyPlan = async () => {
@@ -57,7 +63,7 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
           userProfile?.preferences.dietaryRestrictions || []
       );
       setRecipes(suggestions);
-      localStorage.setItem('scandibox_weekly_plan', JSON.stringify(suggestions));
+      plannerService.savePlan(suggestions);
     } catch (e) {
       alert("AI Processing Error.");
     } finally {
@@ -66,15 +72,11 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
   };
 
   const addMissingIngredients = async (recipe: Recipe) => {
-      // Logic to find missing ingredients (Simple fuzzy matching against inventory)
       const inventoryNames = inventory.map(i => i.name.toLowerCase());
-      
       const missingIngredients = recipe.ingredients.filter(ing => {
-          // Keep ingredient if NOT found in inventory
           return !inventoryNames.some(invName => ing.toLowerCase().includes(invName));
       });
 
-      // Provide Smart Feedback
       const foundCount = recipe.ingredients.length - missingIngredients.length;
       
       if (missingIngredients.length === 0) {
@@ -91,6 +93,23 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
       setAddedToShopIds(prev => new Set(prev).add(recipe.id));
   };
 
+  const handleAddToPlan = (recipe: Recipe) => {
+      setRecipeToAddToPlan(recipe);
+      setIsDaySelectorOpen(true);
+  };
+
+  const confirmAddToPlan = (day: string) => {
+      if (!recipeToAddToPlan) return;
+      const updatedPlan = plannerService.addRecipeToPlan(recipeToAddToPlan, day);
+      setRecipes(updatedPlan);
+      
+      // Feedback and close
+      alert(t('mealPlanner.dayAdded').replace('{day}', t(`days.${day}`)));
+      setAddedToPlanIds(prev => new Set(prev).add(recipeToAddToPlan.id));
+      setIsDaySelectorOpen(false);
+      setRecipeToAddToPlan(null);
+  };
+
   const startCooking = (recipe: Recipe) => {
       setActiveCookingRecipe(recipe);
       setCurrentStep(0);
@@ -98,7 +117,6 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
   };
 
   const handleFinishCooking = () => {
-      // Find matches
       if (!activeCookingRecipe) return;
       
       const ingredients = activeCookingRecipe.ingredients.join(' ').toLowerCase();
@@ -115,8 +133,6 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
 
   const confirmDeductions = async () => {
       await inventoryService.batchDeleteItems(Array.from(selectedForDeduction));
-      // Optimization: we could call a refresh callback here if passed from parent, but Inventory updates on its own mount/tab switch usually. 
-      // Ideally App.tsx should pass a refreshTrigger, but for now user will see updates next time they visit Inventory.
       closeCookingMode();
   };
 
@@ -134,6 +150,7 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
 
   const toggleExpand = (id: string) => setExpandedRecipe(expandedRecipe === id ? null : id);
   const isPro = userProfile?.subscriptionTier === SubscriptionTier.Pro || userProfile?.subscriptionTier === SubscriptionTier.ProMax;
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   // Determine which list to show
   const displayRecipes = activeTab === 'generate' ? recipes : savedRecipes;
@@ -327,7 +344,7 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
                    <div key={recipe.id} className="glass-card rounded-xl overflow-hidden flex flex-col md:flex-row relative">
                        {/* Day Indicator */}
                        <div className="bg-brand-900 text-white p-4 md:w-24 flex md:flex-col items-center justify-center gap-2 font-mono font-bold tracking-widest text-xs md:text-sm">
-                           <span>{recipe.day?.substring(0, 3).toUpperCase() || `DAY ${index + 1}`}</span>
+                           <span>{t(`days.${recipe.day || days[index]}`)?.substring(0, 3).toUpperCase() || `DAY ${index + 1}`}</span>
                        </div>
 
                        <div className="p-6 flex-1">
@@ -404,18 +421,26 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
                         >
                             <Play size={14} /> {t('mealPlanner.startCooking')}
                         </button>
-                        <button 
-                            onClick={() => addMissingIngredients(recipe)}
-                            disabled={addedToShopIds.has(recipe.id)}
-                            className={`w-full py-3 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors ${
-                                addedToShopIds.has(recipe.id) 
-                                ? 'bg-brand-100 text-brand-400 cursor-default'
-                                : 'bg-white border border-brand-200 text-brand-700 hover:bg-brand-50'
-                            }`}
-                        >
-                             {addedToShopIds.has(recipe.id) ? <Check size={14} /> : <ShoppingCart size={14} />}
-                             {addedToShopIds.has(recipe.id) ? t('explore.added') : t('mealPlanner.addToShop')}
-                        </button>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => addMissingIngredients(recipe)}
+                                disabled={addedToShopIds.has(recipe.id)}
+                                className={`flex-1 py-3 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors ${
+                                    addedToShopIds.has(recipe.id) 
+                                    ? 'bg-brand-100 text-brand-400 cursor-default'
+                                    : 'bg-white border border-brand-200 text-brand-700 hover:bg-brand-50'
+                                }`}
+                            >
+                                {addedToShopIds.has(recipe.id) ? <Check size={14} /> : <ShoppingCart size={14} />}
+                                {addedToShopIds.has(recipe.id) ? t('explore.added') : t('mealPlanner.addToShop')}
+                            </button>
+                            <button 
+                                onClick={() => handleAddToPlan(recipe)}
+                                className="flex-1 py-3 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors bg-brand-900 text-white hover:bg-black"
+                            >
+                                <CalendarPlus size={14} /> {t('mealPlanner.addToPlan')}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -439,6 +464,32 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
             </div>
             ))}
         </div>
+      )}
+
+      {/* DAY SELECTOR MODAL */}
+      {isDaySelectorOpen && (
+          <div className="fixed inset-0 z-50 bg-brand-900/90 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
+              <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative">
+                   <button onClick={() => setIsDaySelectorOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-brand-900"><X size={20} /></button>
+                   <div className="flex items-center gap-2 mb-6 text-brand-900">
+                        <CalendarPlus size={24} />
+                        <h3 className="text-xl font-bold font-mono tracking-tight">{t('mealPlanner.selectDay')}</h3>
+                   </div>
+                   
+                   <div className="space-y-2">
+                       {days.map(day => (
+                           <button 
+                               key={day}
+                               onClick={() => confirmAddToPlan(day)}
+                               className="w-full py-3 px-4 bg-brand-50 hover:bg-brand-900 hover:text-white rounded-xl text-left font-bold transition-all flex justify-between items-center group"
+                           >
+                               <span className="font-mono text-sm uppercase tracking-wider">{t(`days.${day}`)}</span>
+                               <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
+                           </button>
+                       ))}
+                   </div>
+              </div>
+          </div>
       )}
     </div>
   );

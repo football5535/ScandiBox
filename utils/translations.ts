@@ -26,8 +26,12 @@ export const translations = {
     },
     inventory: {
       title: "KITCHEN_DB",
-      scan: "SCAN",
-      scanning: "SCANNING...",
+      scan: "SCAN ITEM",
+      scanReceipt: "SCAN RECEIPT",
+      scanning: "PROCESSING...",
+      mode: "INPUT MODE",
+      foodMode: "VISUAL ID",
+      receiptMode: "RECEIPT OCR",
       search: "Search database...",
       all: "All",
       qty: "QTY",
@@ -38,7 +42,9 @@ export const translations = {
       quantity: "Quantity",
       expiryDate: "Expiry Date",
       confirmEntry: "CONFIRM ENTRY",
-      noEntries: "No entries found"
+      noEntries: "No entries found",
+      analysisComplete: "Analysis Complete",
+      itemsAdded: "Items added to inventory."
     },
     explore: {
       title: "EXPLORE_FEED",
@@ -57,7 +63,8 @@ export const translations = {
       saved: "Saved",
       addMissing: "Add Missing to Shop",
       added: "Added to List",
-      smartAddResult: "Smart Check Complete: Found {found} items in inventory. Added {added} items to shopping list."
+      smartAddResult: "Smart Check Complete: Found {found} items in inventory. Added {added} items to shopping list.",
+      addToPlan: "Add to Plan"
     },
     shopping: {
       title: "SUPPLY_LOG",
@@ -82,6 +89,9 @@ export const translations = {
       noSaved: "No saved recipes yet. Go to Explore to find some.",
       cookNow: "INITIATE COOK MODE",
       addToShop: "ADD TO SHOP",
+      addToPlan: "ADD TO PLAN",
+      selectDay: "Select Day Sequence",
+      dayAdded: "Assigned to {day}",
       step: "STEP",
       of: "OF",
       completed: "EXECUTION COMPLETE",
@@ -111,6 +121,15 @@ export const translations = {
       select: "Select",
       language: "SYSTEM_LANGUAGE",
       restore: "Restore Defaults"
+    },
+    days: {
+      Monday: "Monday",
+      Tuesday: "Tuesday",
+      Wednesday: "Wednesday",
+      Thursday: "Thursday",
+      Friday: "Friday",
+      Saturday: "Saturday",
+      Sunday: "Sunday"
     }
   },
   no: {
@@ -139,8 +158,12 @@ export const translations = {
     },
     inventory: {
       title: "KJØKKEN_DB",
-      scan: "SKANN",
-      scanning: "SKANNER...",
+      scan: "SKANN VARE",
+      scanReceipt: "SKANN KVITTERING",
+      scanning: "PROSESSERER...",
+      mode: "INPUT MODUS",
+      foodMode: "VISUELL ID",
+      receiptMode: "KVITTERING OCR",
       search: "Søk i database...",
       all: "Alle",
       qty: "ANT",
@@ -151,7 +174,9 @@ export const translations = {
       quantity: "Antall",
       expiryDate: "Utløpsdato",
       confirmEntry: "BEKREFT",
-      noEntries: "Ingen oppføringer funnet"
+      noEntries: "Ingen oppføringer funnet",
+      analysisComplete: "Analyse Fullført",
+      itemsAdded: "Varer lagt til i lageret."
     },
     explore: {
       title: "UTFORSK_FEED",
@@ -170,7 +195,8 @@ export const translations = {
       saved: "Lagret",
       addMissing: "Legg til manglende i liste",
       added: "Lagt til liste",
-      smartAddResult: "Smart Sjekk Ferdig: Fant {found} varer i lageret. La til {added} varer i handlelisten."
+      smartAddResult: "Smart Sjekk Ferdig: Fant {found} varer i lageret. La til {added} varer i handlelisten.",
+      addToPlan: "Legg til Meny"
     },
     shopping: {
       title: "FORSYNINGSLOGG",
@@ -195,6 +221,9 @@ export const translations = {
       noSaved: "Ingen lagrede oppskrifter ennå. Gå til Utforsk for å finne noen.",
       cookNow: "INITIER KOKKEMODUS",
       addToShop: "LEGG TIL LISTE",
+      addToPlan: "LEGG TIL PLAN",
+      selectDay: "Velg Dag",
+      dayAdded: "Tildelt {day}",
       step: "STEG",
       of: "AV",
       completed: "GJENNOMFØRING FULLFØRT",
@@ -224,6 +253,15 @@ export const translations = {
       select: "Velg",
       language: "SYSTEMSPRÅK",
       restore: "Gjenopprett Standard"
+    },
+    days: {
+      Monday: "Mandag",
+      Tuesday: "Tirsdag",
+      Wednesday: "Onsdag",
+      Thursday: "Torsdag",
+      Friday: "Fredag",
+      Saturday: "Lørdag",
+      Sunday: "Søndag"
     }
   }
 };

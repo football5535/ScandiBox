@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { InventoryItem, Category, SubscriptionTier } from '../types';
-import { Plus, Trash2, Loader2, X, ScanLine, Search, Save, Activity, Filter } from 'lucide-react';
+import { Plus, Trash2, Loader2, X, ScanLine, Search, Save, Activity, Filter, Receipt, Camera, ChevronDown } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { inventoryService, userService } from '../services/supabaseService';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -22,6 +22,9 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [userTier, setUserTier] = useState<SubscriptionTier>(SubscriptionTier.Free);
   const [analyzingNutritionId, setAnalyzingNutritionId] = useState<string | null>(null);
+  
+  // Scanning Mode
+  const [scanMode, setScanMode] = useState<'food' | 'receipt'>('food');
 
   // Manual Add Form State
   const [newItemName, setNewItemName] = useState('');
@@ -35,11 +38,20 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
     });
   }, []);
 
-  const startCamera = async () => {
+  const startCamera = async (mode: 'food' | 'receipt') => {
     if (userTier === SubscriptionTier.Free) {
         alert("Smart Scan is available on Standard, Pro, and Pro Max plans. Please upgrade.");
         return;
     }
+    
+    // Receipt scanning is Pro/ProMax only
+    if (mode === 'receipt' && (userTier !== SubscriptionTier.Pro && userTier !== SubscriptionTier.ProMax)) {
+        alert("Receipt Scanning is a Pro feature.");
+        return;
+    }
+
+    setScanMode(mode);
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setStream(mediaStream);
@@ -74,20 +86,37 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
     const base64 = canvas.toDataURL('image/jpeg').split(',')[1];
     stopCamera(); 
     setIsAnalyzing(true);
+    
     try {
-      const detectedItems = await geminiService.analyzeImage(base64);
+      let detectedItems: Partial<InventoryItem>[] = [];
+      
+      if (scanMode === 'receipt') {
+          detectedItems = await geminiService.analyzeReceipt(base64);
+      } else {
+          detectedItems = await geminiService.analyzeImage(base64);
+      }
+
+      if (detectedItems.length === 0) {
+          alert("No items detected. Try again.");
+          setIsAnalyzing(false);
+          return;
+      }
+
+      let count = 0;
       for (const item of detectedItems) {
         if (item.name && item.category) {
             await inventoryService.addItem({
                 name: item.name,
-                category: item.category as Category,
+                category: (item.category as Category) || Category.Other,
                 quantity: item.quantity || '1',
                 daysUntilExpiry: item.daysUntilExpiry || 7,
                 addedDate: new Date().toISOString(),
                 status: 'active'
             });
+            count++;
         }
       }
+      alert(`${t('inventory.analysisComplete')}: ${count} ${t('inventory.itemsAdded')}`);
       onUpdate(); 
     } catch (error) {
       alert("Analysis Protocol Failed.");
@@ -154,18 +183,34 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
             <h2 className="text-3xl font-bold text-brand-900 tracking-tight">{t('inventory.title')}</h2>
         </div>
         <div className="flex w-full md:w-auto gap-3">
-            <button 
-                onClick={startCamera}
-                disabled={isAnalyzing}
-                className={`flex-1 md:flex-none flex items-center justify-center px-6 py-3 font-bold rounded-lg transition-all border border-brand-900 ${
-                    userTier === SubscriptionTier.Free 
-                    ? 'bg-transparent text-gray-500 border-gray-300 cursor-not-allowed'
-                    : 'bg-brand-900 text-white hover:bg-brand-800 shadow-lg'
-                }`}
-            >
-                {isAnalyzing ? <Loader2 className="animate-spin mr-2" size={18} /> : <ScanLine className="mr-2" size={18} />}
-                {isAnalyzing ? t('inventory.scanning') : t('inventory.scan')}
-            </button>
+            {/* SCANNING OPTIONS */}
+            <div className="flex gap-2">
+                <button 
+                    onClick={() => startCamera('food')}
+                    disabled={isAnalyzing}
+                    className={`flex items-center justify-center px-4 py-3 font-bold rounded-lg transition-all border border-brand-900 ${
+                        userTier === SubscriptionTier.Free 
+                        ? 'bg-transparent text-gray-500 border-gray-300 cursor-not-allowed'
+                        : 'bg-brand-900 text-white hover:bg-brand-800 shadow-lg'
+                    }`}
+                >
+                    {isAnalyzing ? <Loader2 className="animate-spin mr-2" size={18} /> : <ScanLine className="mr-2" size={18} />}
+                    <span className="hidden md:inline">{t('inventory.scan')}</span>
+                </button>
+                <button 
+                    onClick={() => startCamera('receipt')}
+                    disabled={isAnalyzing}
+                    className={`flex items-center justify-center px-4 py-3 font-bold rounded-lg transition-all border border-brand-900 ${
+                        userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax
+                        ? 'bg-white text-brand-900 hover:bg-gray-50'
+                        : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                    }`}
+                >
+                    {isAnalyzing ? <Loader2 className="animate-spin mr-2" size={18} /> : <Receipt className="mr-2" size={18} />}
+                    <span className="hidden md:inline">{t('inventory.scanReceipt')}</span>
+                </button>
+            </div>
+            
             <button 
                 onClick={() => setIsAddModalOpen(true)}
                 className="w-12 h-12 bg-white text-brand-900 border border-brand-200 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
@@ -298,17 +343,33 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
             {/* Overlay UI */}
             <div className="absolute inset-0 pointer-events-none border-[2px] border-white/30 m-8 rounded-2xl flex flex-col justify-between p-4">
                  <div className="flex justify-between text-xs font-mono text-white/70">
-                     <span>REC: ON</span>
+                     <span className="flex items-center gap-2">
+                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                         REC: ON
+                     </span>
                      <span>ISO 800</span>
                  </div>
+                 
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full">
+                     {scanMode === 'receipt' ? (
+                         <div className="border-t-2 border-b-2 border-white/30 h-64 w-4/5 mx-auto flex items-center justify-center">
+                             <p className="bg-black/50 px-2 py-1 text-xs font-mono text-white">{t('inventory.receiptMode')}</p>
+                         </div>
+                     ) : (
+                         <div className="border-2 border-white/30 w-48 h-48 mx-auto rounded-full flex items-center justify-center">
+                             <p className="bg-black/50 px-2 py-1 text-xs font-mono text-white">{t('inventory.foodMode')}</p>
+                         </div>
+                     )}
+                 </div>
+
                  <div className="text-center text-xs font-mono text-white/70">TARGET ACQUISITION</div>
             </div>
 
             <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center gap-8 z-10">
-                <button onClick={stopCamera} className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+                <button onClick={stopCamera} className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 hover:bg-white/20 transition-all">
                     <X size={24} />
                 </button>
-                <button onClick={captureAndAnalyze} className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center">
+                <button onClick={captureAndAnalyze} className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center bg-white/10 hover:bg-white/30 transition-all">
                     <div className="w-16 h-16 bg-white rounded-full"></div>
                 </button>
             </div>

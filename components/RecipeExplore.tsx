@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { InventoryItem, Recipe, SubscriptionTier } from '../types';
 import { geminiService } from '../services/geminiService';
-import { userService, recipeService, shoppingService } from '../services/supabaseService';
-import { Compass, Flame, ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Lock, RefreshCw, AlertTriangle, BookmarkPlus, ShoppingCart, Check } from 'lucide-react';
+import { userService, recipeService, shoppingService, plannerService } from '../services/supabaseService';
+import { Compass, Flame, ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Lock, RefreshCw, AlertTriangle, BookmarkPlus, ShoppingCart, Check, CalendarPlus, X, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface RecipeExploreProps {
@@ -20,6 +20,10 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
   const [dailyGenerations, setDailyGenerations] = useState(0);
   const [savedRecipeIds, setSavedRecipeIds] = useState<Set<string>>(new Set());
   const [addedIngredientsIds, setAddedIngredientsIds] = useState<Set<string>>(new Set());
+
+  // Plan Addition State
+  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(false);
+  const [recipeToAddToPlan, setRecipeToAddToPlan] = useState<Recipe | null>(null);
 
   const DAILY_FREE_LIMIT = 3;
 
@@ -76,16 +80,11 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
   };
 
   const addMissingIngredients = async (recipe: Recipe) => {
-      // Logic to find missing ingredients (Simple fuzzy matching against inventory)
       const inventoryNames = inventory.map(i => i.name.toLowerCase());
-      
       const missingIngredients = recipe.ingredients.filter(ing => {
-          // Keep ingredient if NOT found in inventory
-          // Very basic check: does inventory item name appear in ingredient string?
           return !inventoryNames.some(invName => ing.toLowerCase().includes(invName));
       });
 
-      // Provide Smart Feedback
       const foundCount = recipe.ingredients.length - missingIngredients.length;
       
       if (missingIngredients.length === 0) {
@@ -102,7 +101,21 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
       setAddedIngredientsIds(prev => new Set(prev).add(recipe.id));
   };
 
+  const handleAddToPlan = (recipe: Recipe) => {
+      setRecipeToAddToPlan(recipe);
+      setIsDaySelectorOpen(true);
+  };
+
+  const confirmAddToPlan = (day: string) => {
+      if (!recipeToAddToPlan) return;
+      plannerService.addRecipeToPlan(recipeToAddToPlan, day);
+      alert(t('mealPlanner.dayAdded').replace('{day}', t(`days.${day}`)));
+      setIsDaySelectorOpen(false);
+      setRecipeToAddToPlan(null);
+  };
+
   const toggleExpand = (id: string) => setExpandedRecipe(expandedRecipe === id ? null : id);
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <div className="space-y-6 animate-fade-in pt-4">
@@ -251,6 +264,13 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
                                {addedIngredientsIds.has(recipe.id) ? t('explore.added') : t('explore.addMissing')}
                            </button>
                       </div>
+
+                      <button 
+                         onClick={(e) => { e.stopPropagation(); handleAddToPlan(recipe); }}
+                         className="w-full mt-2 py-3 bg-brand-900 text-white font-bold rounded-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-colors"
+                      >
+                          <CalendarPlus size={14} /> {t('explore.addToPlan')}
+                      </button>
                   </div>
 
                   <button 
@@ -274,6 +294,32 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
               </div>
           ))}
       </div>
+
+      {/* DAY SELECTOR MODAL */}
+      {isDaySelectorOpen && (
+          <div className="fixed inset-0 z-50 bg-brand-900/90 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
+              <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative">
+                   <button onClick={() => setIsDaySelectorOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-brand-900"><X size={20} /></button>
+                   <div className="flex items-center gap-2 mb-6 text-brand-900">
+                        <CalendarPlus size={24} />
+                        <h3 className="text-xl font-bold font-mono tracking-tight">{t('mealPlanner.selectDay')}</h3>
+                   </div>
+                   
+                   <div className="space-y-2">
+                       {days.map(day => (
+                           <button 
+                               key={day}
+                               onClick={() => confirmAddToPlan(day)}
+                               className="w-full py-3 px-4 bg-brand-50 hover:bg-brand-900 hover:text-white rounded-xl text-left font-bold transition-all flex justify-between items-center group"
+                           >
+                               <span className="font-mono text-sm uppercase tracking-wider">{t(`days.${day}`)}</span>
+                               <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
+                           </button>
+                       ))}
+                   </div>
+              </div>
+          </div>
+      )}
     </div>
   );
 };

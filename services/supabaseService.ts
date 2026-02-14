@@ -16,6 +16,46 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY) {
 const LOCAL_INV_KEY = 'scandibox_inventory_v3';
 const LOCAL_SHOP_KEY = 'scandibox_shopping_v1';
 const LOCAL_TIER_KEY = 'scandibox_demo_tier';
+const LOCAL_PLAN_KEY = 'scandibox_weekly_plan';
+
+// --- PLANNER SERVICE ---
+export const plannerService = {
+  getPlan(): Recipe[] {
+    const stored = localStorage.getItem(LOCAL_PLAN_KEY);
+    return stored ? JSON.parse(stored) : [];
+  },
+
+  savePlan(plan: Recipe[]) {
+    localStorage.setItem(LOCAL_PLAN_KEY, JSON.stringify(plan));
+  },
+
+  addRecipeToPlan(recipe: Recipe, day: string): Recipe[] {
+    const plan = this.getPlan();
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    // Remove existing recipe for that day if it exists
+    const filtered = plan.filter(r => r.day !== day);
+    
+    // Create new entry
+    const newEntry: Recipe = { 
+        ...recipe, 
+        day, 
+        id: `plan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` // Ensure unique ID for the plan instance
+    };
+
+    const updated = [...filtered, newEntry];
+    
+    // Sort by day index
+    updated.sort((a, b) => {
+        const indexA = days.indexOf(a.day || '');
+        const indexB = days.indexOf(b.day || '');
+        return indexA - indexB;
+    });
+    
+    this.savePlan(updated);
+    return updated;
+  }
+};
 
 // --- INVENTORY SERVICE ---
 export const inventoryService = {
