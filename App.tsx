@@ -5,6 +5,7 @@ import Inventory from './components/Inventory';
 import MealPlanner from './components/MealPlanner';
 import ShoppingList from './components/ShoppingList';
 import Settings from './components/Settings';
+import Family from './components/Family';
 import CheckMail from './components/CheckMail';
 import { Auth } from './components/Auth';
 import { inventoryService, supabase } from './services/supabaseService';
@@ -76,6 +77,8 @@ function App() {
         return <MealPlanner inventory={inventoryItems} />;
       case 'shopping':
         return <ShoppingList inventory={inventoryItems} />;
+      case 'family':
+        return <Family />;
       case 'settings':
         return <Settings />;
       default:
@@ -85,8 +88,8 @@ function App() {
 
   if (isLoading) {
       return (
-          <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
-              <div className="w-3 h-3 bg-brand-900 rounded-full animate-ping"></div>
+          <div className="min-h-screen flex items-center justify-center">
+              <div className="w-4 h-4 bg-brand-900 animate-spin"></div>
           </div>
       );
   }
@@ -106,15 +109,14 @@ function App() {
 
   // APP VIEW (Authenticated)
   return (
-    <div className="flex min-h-screen bg-[#f8fafc] font-sans text-brand-900">
+    <div className="flex min-h-screen font-sans text-brand-900">
       <Navigation 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
       />
       
       {/* Main Content Area */}
-      {/* Mobile: pt-4, pb-32 (for bottom nav). Desktop: mt-32 (for top nav), pb-16 */}
-      <main className="flex-1 w-full max-w-[1300px] mx-auto pt-4 pb-32 md:pt-0 md:mt-32 md:pb-16 px-4 md:px-6 relative z-0 safe-top safe-bottom">
+      <main className="flex-1 w-full max-w-[1200px] mx-auto pt-4 pb-24 md:pt-0 md:mt-24 md:pb-12 px-4 md:px-6 relative z-0 safe-top safe-bottom">
         {renderContent()}
       </main>
     </div>

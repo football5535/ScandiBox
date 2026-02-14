@@ -28,21 +28,16 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
 
     try {
         if (isLogin) {
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
         } else {
             const { error } = await supabase.auth.signUp({
                 email,
                 password,
-                options: {
-                    emailRedirectTo: window.location.origin
-                }
+                options: { emailRedirectTo: window.location.origin }
             });
             if (error) throw error;
-            onSuccess(); // Triggers "Check Mail" view
+            onSuccess();
         }
     } catch (err: any) {
         setError(err.message);
@@ -52,59 +47,54 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 font-sans text-[#003385]">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
         
-        {/* LOGO SECTION */}
-        <div className="mb-12 text-center animate-fade-in">
-            <div className="w-32 h-32 mx-auto mb-6 relative">
-                 <img src={APP_LOGO_URL} alt="ScandiBox" className="w-full h-full object-contain drop-shadow-2xl" />
+        <div className="mb-8 text-center animate-fade-in">
+            <div className="w-24 h-24 mx-auto mb-4 relative bg-white rounded-xl p-2 shadow-lg">
+                 <img src={APP_LOGO_URL} alt="ScandiBox" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-4xl font-mono font-bold tracking-tight mb-2">ScandiBox</h1>
-            <p className="text-gray-400">Intelligent Kitchen OS</p>
+            <h1 className="text-3xl font-mono font-bold tracking-tight text-brand-900 mb-1">SCANDIBOX_OS</h1>
         </div>
 
-        <div className="w-full max-w-md bg-white p-10 rounded-[2rem] shadow-2xl border border-gray-100">
-            <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold tracking-tight mb-1">
-                    {isLogin ? 'Welcome back' : 'Get started'}
+        <div className="w-full max-w-sm glass-panel p-8 rounded-2xl">
+            <div className="text-center mb-6">
+                <h2 className="text-lg font-bold uppercase tracking-widest text-brand-900">
+                    {isLogin ? 'Authentication' : 'Registration'}
                 </h2>
-                <p className="text-sm text-gray-400">
-                    {isLogin ? 'Enter your credentials to access your box.' : 'Create a free account to organize your food.'}
-                </p>
             </div>
 
             {error && (
-                <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm text-center font-medium border border-red-100">
-                    {error}
+                <div className="mb-6 p-3 bg-red-50 text-red-600 rounded border border-red-200 text-xs font-mono">
+                    ERROR: {error}
                 </div>
             )}
 
-            <form onSubmit={handleAuth} className="space-y-6">
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Email</label>
-                    <div className="relative group">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#003385] transition-colors" size={20} />
+            <form onSubmit={handleAuth} className="space-y-4">
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-brand-500 uppercase tracking-widest">Identity</label>
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                         <input 
                             type="email" 
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 focus:bg-white focus:border-[#003385] rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 font-medium"
-                            placeholder="name@example.com"
+                            className="w-full pl-10 pr-3 py-3 bg-white/50 border border-white/60 focus:bg-white focus:border-brand-900 rounded-lg focus:outline-none transition-all text-brand-900 font-bold font-mono text-sm"
+                            placeholder="user@domain.com"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Password</label>
-                    <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#003385] transition-colors" size={20} />
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-brand-500 uppercase tracking-widest">Key</label>
+                    <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                         <input 
                             type="password" 
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 focus:bg-white focus:border-[#003385] rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-50 transition-all text-gray-900 font-medium"
+                            className="w-full pl-10 pr-3 py-3 bg-white/50 border border-white/60 focus:bg-white focus:border-brand-900 rounded-lg focus:outline-none transition-all text-brand-900 font-bold font-mono text-sm"
                             placeholder="••••••••"
                         />
                     </div>
@@ -113,27 +103,24 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
                 <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full py-4 mt-4 bg-[#003385] hover:bg-[#00255c] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+                    className="w-full py-3 mt-4 bg-brand-900 hover:bg-black text-white font-bold rounded-lg shadow-lg transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : (
+                    {loading ? <Loader2 className="animate-spin" size={16} /> : (
                         <>
-                            {isLogin ? 'Sign In' : 'Create Account'}
-                            <ArrowRight size={20} />
+                            {isLogin ? 'Access System' : 'Create Record'}
+                            <ArrowRight size={16} />
                         </>
                     )}
                 </button>
             </form>
 
-            <div className="mt-8 text-center pt-6 border-t border-gray-100">
-                <p className="text-gray-400 text-sm font-medium">
-                    {isLogin ? "New to ScandiBox?" : "Already have a box?"}
-                    <button 
-                        onClick={() => setIsLogin(!isLogin)} 
-                        className="ml-2 text-[#003385] font-bold hover:underline"
-                    >
-                        {isLogin ? 'Sign up' : 'Log in'}
-                    </button>
-                </p>
+            <div className="mt-6 text-center pt-4 border-t border-brand-200/50">
+                <button 
+                    onClick={() => setIsLogin(!isLogin)} 
+                    className="text-brand-600 text-xs font-bold font-mono hover:text-brand-900 underline decoration-dotted"
+                >
+                    {isLogin ? 'Initialize New Account' : 'Return to Login'}
+                </button>
             </div>
         </div>
     </div>

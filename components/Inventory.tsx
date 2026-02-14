@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { InventoryItem, Category, SubscriptionTier } from '../types';
-import { Plus, Trash2, Loader2, X, ScanLine, Search, Save } from 'lucide-react';
+import { Plus, Trash2, Loader2, X, ScanLine, Search, Save, Activity, Filter } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { inventoryService, userService } from '../services/supabaseService';
 
@@ -18,6 +18,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
   const [filter, setFilter] = useState<Category | 'All'>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [userTier, setUserTier] = useState<SubscriptionTier>(SubscriptionTier.Free);
+  const [analyzingNutritionId, setAnalyzingNutritionId] = useState<string | null>(null);
 
   // Manual Add Form State
   const [newItemName, setNewItemName] = useState('');
@@ -33,16 +34,14 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
 
   const startCamera = async () => {
     if (userTier === SubscriptionTier.Free) {
-        alert("Smart Scan is available on Standard, Pro, and Pro Max plans. Please upgrade to scan items automatically.");
+        alert("Smart Scan is available on Standard, Pro, and Pro Max plans. Please upgrade.");
         return;
     }
-
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setStream(mediaStream);
       setIsCameraOpen(true);
     } catch (err) {
-      console.error("Error accessing camera:", err);
       alert("System Error: Camera access denied.");
     }
   };
@@ -63,22 +62,17 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
 
   const captureAndAnalyze = async () => {
     if (!videoRef.current) return;
-
     const canvas = document.createElement('canvas');
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
     ctx.drawImage(videoRef.current, 0, 0);
     const base64 = canvas.toDataURL('image/jpeg').split(',')[1];
-
     stopCamera(); 
     setIsAnalyzing(true);
-
     try {
       const detectedItems = await geminiService.analyzeImage(base64);
-      
       for (const item of detectedItems) {
         if (item.name && item.category) {
             await inventoryService.addItem({
@@ -93,7 +87,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
       }
       onUpdate(); 
     } catch (error) {
-      alert("Analysis Protocol Failed. Retrying...");
+      alert("Analysis Protocol Failed.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -102,14 +96,11 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
   const handleManualAdd = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!newItemName) return;
-
-      // Simple day calc
       let daysUntil = 7;
       if (newItemExpiry) {
           const diff = new Date(newItemExpiry).getTime() - new Date().getTime();
           daysUntil = Math.ceil(diff / (1000 * 3600 * 24));
       }
-
       await inventoryService.addItem({
           name: newItemName,
           category: newItemCategory,
@@ -119,7 +110,6 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
           addedDate: new Date().toISOString(),
           status: 'active'
       });
-
       setNewItemName('');
       setNewItemQuantity('');
       setNewItemExpiry('');
@@ -132,62 +122,78 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
       onUpdate();
   }
 
+  const handleNutritionAnalysis = async (item: InventoryItem) => {
+      if (userTier !== SubscriptionTier.ProMax) {
+          alert("Deep Nutrition Analysis is a Pro Max feature.");
+          return;
+      }
+      setAnalyzingNutritionId(item.id);
+      try {
+          const data = await geminiService.getNutritionAnalysis(item.name);
+          alert(`Analysis for ${item.name}:\n\nEnergy: ${data.calories}\nBenefits: ${data.benefits}\n${data.warning ? `Note: ${data.warning}` : ''}`);
+      } catch (e) {
+          alert("Analysis failed.");
+      } finally {
+          setAnalyzingNutritionId(null);
+      }
+  }
+
   const filteredItems = items
     .filter(i => filter === 'All' || i.category === filter)
     .filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="space-y-8 md:space-y-12 animate-fade-in pt-2">
+    <div className="space-y-6 animate-fade-in">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-8">
+      <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-            <h2 className="text-4xl md:text-5xl font-bold text-brand-900 tracking-tight">My Kitchen</h2>
-            <p className="text-brand-500 mt-2 md:mt-3 font-bold text-base md:text-lg">Manage your ingredients intelligently.</p>
+            <h2 className="text-3xl font-bold text-brand-900 tracking-tight">KITCHEN_DB</h2>
         </div>
-        <div className="flex w-full md:w-auto gap-4">
+        <div className="flex w-full md:w-auto gap-3">
             <button 
                 onClick={startCamera}
                 disabled={isAnalyzing}
-                className={`flex-1 md:flex-none flex items-center justify-center px-6 md:px-8 py-4 md:py-5 font-bold rounded-2xl shadow-lg transition-all active:scale-[0.98] ${
+                className={`flex-1 md:flex-none flex items-center justify-center px-6 py-3 font-bold rounded-lg transition-all border border-brand-900 ${
                     userTier === SubscriptionTier.Free 
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-[#003385] text-white shadow-blue-900/30 hover:bg-[#00255c] hover:scale-[1.02]'
+                    ? 'bg-transparent text-gray-500 border-gray-300 cursor-not-allowed'
+                    : 'bg-brand-900 text-white hover:bg-brand-800 shadow-lg'
                 }`}
             >
-                {isAnalyzing ? <Loader2 className="animate-spin mr-2 md:mr-3" size={20} /> : <ScanLine className="mr-2 md:mr-3" size={20} />}
-                {isAnalyzing ? 'Scanning...' : 'Smart Scan'}
+                {isAnalyzing ? <Loader2 className="animate-spin mr-2" size={18} /> : <ScanLine className="mr-2" size={18} />}
+                {isAnalyzing ? 'SCANNING...' : 'SCAN'}
             </button>
             <button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="w-14 h-14 md:w-16 md:h-16 bg-white border-2 border-brand-100 text-brand-700 rounded-2xl shadow-sm hover:shadow-lg flex items-center justify-center transition-all hover:scale-[1.05]"
+                className="w-12 h-12 bg-white text-brand-900 border border-brand-200 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
-                <Plus size={24} strokeWidth={3} className="md:w-7 md:h-7" />
+                <Plus size={24} />
             </button>
         </div>
       </div>
 
-      {/* FILTER & SEARCH */}
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center bg-white p-3 rounded-[2rem] shadow-sm border border-brand-50">
+      {/* FILTER BAR */}
+      <div className="glass-panel p-3 rounded-xl flex flex-col md:flex-row gap-3 items-center">
         <div className="relative flex-1 w-full">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
                 type="text" 
-                placeholder="Search items..." 
-                className="w-full pl-14 pr-6 py-3 md:py-4 bg-transparent focus:outline-none text-brand-900 font-bold placeholder-gray-300 text-base md:text-lg"
+                placeholder="Search database..." 
+                className="w-full pl-12 pr-4 py-2 bg-transparent focus:outline-none text-brand-900 font-bold placeholder-gray-400"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
         </div>
-        <div className="flex overflow-x-auto gap-2 md:gap-3 p-1 w-full md:w-auto scrollbar-hide no-scrollbar">
+        <div className="w-px h-8 bg-gray-300 hidden md:block"></div>
+        <div className="flex overflow-x-auto gap-2 w-full md:w-auto no-scrollbar">
             {['All', ...Object.values(Category)].map(cat => (
             <button
                 key={cat}
                 onClick={() => setFilter(cat as Category | 'All')}
-                className={`px-5 py-2.5 md:px-6 md:py-3 rounded-xl text-xs md:text-sm font-bold whitespace-nowrap transition-all uppercase tracking-wide flex-shrink-0 ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap uppercase tracking-wider border ${
                 filter === cat 
-                    ? 'bg-brand-100 text-brand-900 shadow-inner' 
-                    : 'bg-transparent text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+                    ? 'bg-brand-900 text-white border-brand-900' 
+                    : 'bg-transparent text-gray-500 border-transparent hover:bg-black/5'
                 }`}
             >
                 {cat}
@@ -196,80 +202,84 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
         </div>
       </div>
 
-      {/* Item Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
+      {/* GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredItems.map(item => (
-          <div key={item.id} className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-soft border border-brand-50 hover:shadow-xl hover:-translate-y-2 transition-all group relative flex flex-col h-full">
-            <div className="flex justify-between items-start mb-6">
-                <span className={`text-[10px] md:text-[11px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-lg bg-brand-50 text-brand-600 border border-brand-100`}>
+          <div key={item.id} className="glass-card p-6 rounded-xl flex flex-col h-full group relative">
+            <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-1 rounded border border-brand-200 text-brand-500 bg-white/50">
                     {item.category}
                 </span>
-                <button onClick={() => handleDelete(item.id)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-red-100 hover:text-red-600">
-                    <Trash2 size={18} />
+                <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 transition-colors">
+                    <Trash2 size={16} />
                 </button>
             </div>
             
-            <h3 className="font-bold text-xl md:text-2xl text-brand-900 mb-2 leading-tight">{item.name}</h3>
-            <p className="text-gray-400 text-sm mb-6 md:mb-8 font-bold">Qty: <span className="text-brand-600">{item.quantity}</span></p>
+            <h3 className="font-bold text-xl text-brand-900 mb-1">{item.name}</h3>
+            <p className="text-brand-500 text-sm font-bold font-mono">QTY: {item.quantity}</p>
             
-            <div className="mt-auto pt-4 border-t border-gray-50">
-                 <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full shadow-sm ${
-                        (item.daysUntilExpiry || 0) < 3 ? 'bg-red-500 animate-pulse shadow-red-200' : 
+            <div className="mt-auto pt-4 border-t border-brand-100/50 flex justify-between items-center">
+                 <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                        (item.daysUntilExpiry || 0) < 3 ? 'bg-red-500' : 
                         (item.daysUntilExpiry || 0) < 7 ? 'bg-yellow-500' : 'bg-green-500'
                     }`}></div>
-                    <span className={`text-xs font-bold uppercase tracking-wider ${
-                        (item.daysUntilExpiry || 0) < 3 ? 'text-red-600' : 'text-gray-500'
-                    }`}>
-                        {item.daysUntilExpiry} days left
+                    <span className="text-xs font-bold uppercase text-brand-400">
+                        {item.daysUntilExpiry} days
                     </span>
                  </div>
+                 
+                 {userTier === SubscriptionTier.ProMax && (
+                     <button 
+                        onClick={() => handleNutritionAnalysis(item)}
+                        disabled={analyzingNutritionId === item.id}
+                        className="text-brand-400 hover:text-brand-900 p-1"
+                     >
+                        {analyzingNutritionId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
+                     </button>
+                 )}
             </div>
           </div>
         ))}
-        
-        {filteredItems.length === 0 && (
-            <div className="col-span-full py-16 md:py-24 text-center bg-white/50 rounded-[2.5rem] border border-dashed border-gray-200">
-                <div className="w-20 h-20 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Search className="text-brand-300" size={32} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold text-brand-900">No items found</h3>
-                <p className="text-gray-400 mt-2 font-medium text-sm md:text-base">Try adding some items or adjusting your search.</p>
-            </div>
-        )}
       </div>
+        
+      {filteredItems.length === 0 && (
+            <div className="py-20 text-center glass-panel rounded-2xl border-dashed border-2 border-brand-300">
+                <Search className="mx-auto text-brand-300 mb-4" size={40} />
+                <h3 className="text-xl font-bold text-brand-900">No entries found</h3>
+            </div>
+      )}
 
-      {/* Manual Add Modal */}
+      {/* Manual Add Modal - Industrial Style */}
       {isAddModalOpen && (
-          <div className="fixed inset-0 z-[60] bg-[#00163b]/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-              <div className="bg-white w-full max-w-lg p-6 md:p-10 rounded-[2.5rem] shadow-2xl animate-fade-in my-auto">
-                  <div className="flex justify-between items-center mb-6 md:mb-8">
-                      <h3 className="text-2xl md:text-3xl font-bold text-brand-900">Add Item</h3>
-                      <button onClick={() => setIsAddModalOpen(false)} className="p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"><X size={20} /></button>
-                  </div>
-                  <form onSubmit={handleManualAdd} className="space-y-4 md:space-y-6">
+          <div className="fixed inset-0 z-[60] bg-brand-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl border border-white/20 animate-fade-in relative">
+                  <button onClick={() => setIsAddModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-brand-900"><X size={20} /></button>
+                  <h3 className="text-2xl font-bold text-brand-900 mb-6 font-mono">INPUT_NEW_ITEM</h3>
+                  
+                  <form onSubmit={handleManualAdd} className="space-y-4">
                       <div>
-                          <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-2 mb-2 block">Name</label>
-                          <input required type="text" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="w-full p-4 md:p-5 bg-gray-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#003385] font-bold text-brand-900" placeholder="e.g., Cheddar Cheese" />
+                          <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Item Name</label>
+                          <input required type="text" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none focus:border-brand-900 font-bold text-brand-900" placeholder="Ex: Milk" />
                       </div>
-                      <div className="grid grid-cols-2 gap-4 md:gap-6">
+                      <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-2 mb-2 block">Category</label>
-                            <select value={newItemCategory} onChange={e => setNewItemCategory(e.target.value as Category)} className="w-full p-4 md:p-5 bg-gray-50 rounded-2xl focus:outline-none appearance-none font-bold text-brand-900">
+                            <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Category</label>
+                            <select value={newItemCategory} onChange={e => setNewItemCategory(e.target.value as Category)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none font-bold text-brand-900">
                                 {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-2 mb-2 block">Qty</label>
-                            <input type="text" value={newItemQuantity} onChange={e => setNewItemQuantity(e.target.value)} className="w-full p-4 md:p-5 bg-gray-50 rounded-2xl focus:outline-none font-bold text-brand-900" placeholder="e.g. 500g" />
+                            <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Quantity</label>
+                            <input type="text" value={newItemQuantity} onChange={e => setNewItemQuantity(e.target.value)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none font-bold text-brand-900" placeholder="Ex: 1L" />
                           </div>
                       </div>
                       <div>
-                          <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-2 mb-2 block">Expiry Date</label>
-                          <input type="date" value={newItemExpiry} onChange={e => setNewItemExpiry(e.target.value)} className="w-full p-4 md:p-5 bg-gray-50 rounded-2xl focus:outline-none font-bold text-brand-900" />
+                          <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Expiry Date</label>
+                          <input type="date" value={newItemExpiry} onChange={e => setNewItemExpiry(e.target.value)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none font-bold text-brand-900" />
                       </div>
-                      <button type="submit" className="w-full py-4 md:py-5 bg-[#003385] text-white font-bold rounded-2xl mt-4 hover:bg-[#00255c] flex items-center justify-center gap-3 transition-colors shadow-lg shadow-blue-900/20">
-                          <Save size={20} /> Save Item
+                      <button type="submit" className="w-full py-4 bg-brand-900 text-white font-bold rounded-lg mt-2 hover:bg-black transition-colors flex items-center justify-center gap-2">
+                          <Save size={18} /> CONFIRM ENTRY
                       </button>
                   </form>
               </div>
@@ -278,43 +288,36 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
 
       {/* Camera Modal */}
       {isCameraOpen && (
-        <div className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center p-0 md:p-10">
-          <div className="relative w-full h-full md:max-w-xl md:h-auto md:aspect-[3/4] bg-black md:rounded-[3rem] overflow-hidden shadow-2xl ring-4 ring-white/10">
-            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+        <div className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center p-0 md:p-8">
+          <div className="relative w-full h-full md:max-w-lg md:h-auto md:aspect-[3/4] bg-black md:rounded-3xl overflow-hidden ring-1 ring-white/20">
+            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover opacity-80" />
             
-            <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-12 z-10 pb-safe-bottom">
-                <button 
-                    onClick={stopCamera} 
-                    className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                >
-                    <X size={28} />
-                </button>
-                <button 
-                    onClick={captureAndAnalyze} 
-                    className="w-24 h-24 rounded-full bg-white border-[8px] border-gray-300 hover:scale-105 transition-transform flex items-center justify-center"
-                >
-                    <div className="w-20 h-20 rounded-full border-2 border-black/10" />
-                </button>
+            {/* Overlay UI */}
+            <div className="absolute inset-0 pointer-events-none border-[2px] border-white/30 m-8 rounded-2xl flex flex-col justify-between p-4">
+                 <div className="flex justify-between text-xs font-mono text-white/70">
+                     <span>REC: ON</span>
+                     <span>ISO 800</span>
+                 </div>
+                 <div className="text-center text-xs font-mono text-white/70">TARGET ACQUISITION</div>
             </div>
-            
-            <div className="absolute top-10 left-0 right-0 text-center pt-safe-top">
-                 <span className="bg-black/40 backdrop-blur-md text-white px-6 py-3 rounded-full text-sm font-bold tracking-wide border border-white/10">
-                    ALIGN FOOD ITEMS
-                 </span>
+
+            <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center gap-8 z-10">
+                <button onClick={stopCamera} className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+                    <X size={24} />
+                </button>
+                <button onClick={captureAndAnalyze} className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center">
+                    <div className="w-16 h-16 bg-white rounded-full"></div>
+                </button>
             </div>
           </div>
         </div>
       )}
       
-      {/* Analysis Loader Overlay */}
+      {/* Loading Overlay */}
       {isAnalyzing && (
-        <div className="fixed inset-0 z-[70] bg-white/90 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center">
-            <div className="relative mb-8">
-                <div className="absolute inset-0 bg-[#003385] blur-3xl opacity-20 animate-pulse rounded-full"></div>
-                <Loader2 className="animate-spin text-[#003385] relative z-10" size={60} strokeWidth={1.5} />
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-brand-900">Analyzing</h3>
-            <p className="text-gray-500 mt-3 font-medium tracking-wide">Gemini AI is identifying ingredients...</p>
+        <div className="fixed inset-0 z-[70] bg-brand-900/90 backdrop-blur-md flex flex-col items-center justify-center">
+            <Loader2 className="animate-spin text-white mb-4" size={48} />
+            <h3 className="text-2xl font-bold text-white font-mono tracking-widest">PROCESSING...</h3>
         </div>
       )}
     </div>

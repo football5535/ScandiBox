@@ -47,6 +47,7 @@ export interface UserProfile {
   id: string;
   email: string;
   subscriptionTier: SubscriptionTier;
+  familyName?: string;
   preferences: {
     dietaryRestrictions: string[];
     householdSize: number;

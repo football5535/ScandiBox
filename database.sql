@@ -28,6 +28,7 @@ create table if not exists public.profiles (
   subscription_tier text default 'Free', 
   household_size integer default 1,
   dietary_restrictions text[],
+  family_name text, -- Added for Family Tab
   stripe_customer_id text,
   updated_at timestamp with time zone
 );

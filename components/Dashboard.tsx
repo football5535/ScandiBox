@@ -1,6 +1,6 @@
 import React from 'react';
 import { InventoryItem } from '../types';
-import { ArrowRight, Leaf, ShoppingBag, Utensils, AlertCircle, TrendingUp } from 'lucide-react';
+import { ArrowRight, Leaf, ShoppingBag, Utensils, AlertCircle, Calendar } from 'lucide-react';
 
 interface DashboardProps {
   items: InventoryItem[];
@@ -11,170 +11,114 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
   const expiringSoon = items.filter(i => (i.daysUntilExpiry || 0) <= 3);
   const totalItems = items.length;
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-  };
-
-  const glassStyle = {
-    background: 'rgba(255, 255, 255, 0.25)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.5)',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.05)'
-  };
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div className="relative space-y-8 md:space-y-12 animate-fade-in pt-4">
+    <div className="relative space-y-6 md:space-y-8 animate-fade-in pt-6 md:pt-8">
       
-      {/* BACKGROUND BLOBS FOR GLASS EFFECT */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[140%] h-[1000px] overflow-hidden -z-10 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse" style={{ animationDuration: '8s' }} />
-          <div className="absolute top-[20%] right-[-5%] w-[500px] h-[500px] bg-indigo-400/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
-          <div className="absolute top-[40%] left-[20%] w-[400px] h-[400px] bg-teal-300/20 rounded-full blur-[100px] mix-blend-multiply" />
-      </div>
-
-      <header className="mb-6 md:mb-10 px-4 relative z-10">
-        <h1 className="text-4xl md:text-7xl font-bold text-brand-900 tracking-tighter leading-[1.1] drop-shadow-sm">
-          {getGreeting()}.<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4275ff] to-brand-700 opacity-90">
-            Your kitchen {expiringSoon.length > 0 ? 'needs attention.' : 'is in balance.'}
+      {/* Header Section */}
+      <header className="mb-8 px-1">
+        <div className="flex items-center gap-2 mb-2 text-brand-700 font-bold text-sm tracking-widest uppercase opacity-70">
+            <Calendar size={14} /> {dateStr}
+        </div>
+        <h1 className="text-4xl md:text-6xl font-bold text-brand-900 leading-tight">
+          System Status: <br/>
+          <span className={`border-b-4 ${expiringSoon.length > 0 ? 'border-orange-500 text-brand-900' : 'border-green-500 text-brand-900'}`}>
+             {expiringSoon.length > 0 ? 'Action Required' : 'Optimal'}
           </span>
         </h1>
       </header>
 
-      {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 px-2">
-        
-        {/* Inventory Status - GLASS */}
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Inventory Count */}
         <div 
             onClick={() => setActiveTab('inventory')}
-            className="group cursor-pointer relative overflow-hidden p-8 md:p-10 rounded-[2.5rem] transition-all duration-300 hover:-translate-y-2 hover:shadow-glow"
-            style={glassStyle}
+            className="glass-panel p-8 rounded-2xl relative overflow-hidden group cursor-pointer hover:border-brand-500/30 transition-colors"
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/5 to-transparent pointer-events-none" />
-            
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-8 md:mb-12">
-                    <div className="w-14 h-14 md:w-16 md:h-16 bg-white/60 backdrop-blur-md rounded-2xl flex items-center justify-center text-[#003385] shadow-[inset_0_2px_4px_rgba(255,255,255,0.8)] border border-white/40">
-                        <Leaf size={28} className="md:w-8 md:h-8" strokeWidth={2} />
-                    </div>
-                    <div className="w-12 h-12 rounded-full border border-white/50 flex items-center justify-center bg-white/30 group-hover:bg-[#003385] group-hover:text-white transition-colors duration-300 backdrop-blur-sm shadow-sm">
-                        <ArrowRight size={20} />
-                    </div>
+            <div className="flex justify-between items-start mb-6">
+                <div className="bg-brand-900 text-white p-3 rounded-lg shadow-lg">
+                    <Leaf size={24} />
                 </div>
-                <div>
-                    <p className="text-6xl md:text-7xl font-bold text-brand-900 mb-2 drop-shadow-sm tracking-tight">{totalItems}</p>
-                    <p className="text-brand-900/60 font-bold uppercase tracking-widest text-xs md:text-sm">Ingredients tracked</p>
-                </div>
+                <ArrowRight className="text-brand-400 group-hover:text-brand-900 group-hover:translate-x-1 transition-all" />
+            </div>
+            <div className="flex items-baseline gap-2">
+                <span className="text-6xl font-bold text-brand-900">{totalItems}</span>
+                <span className="text-sm font-bold text-brand-500 uppercase tracking-widest">Items Stored</span>
+            </div>
+            <div className="absolute -bottom-6 -right-6 text-brand-900/5 rotate-[-15deg]">
+                <Leaf size={180} />
             </div>
         </div>
 
-        {/* Expiration Alert - GLASS */}
+        {/* Expiry Alert */}
         <div 
             onClick={() => setActiveTab('inventory')}
-            className="group cursor-pointer relative overflow-hidden p-8 md:p-10 rounded-[2.5rem] transition-all duration-300 hover:-translate-y-2 hover:shadow-glow"
-            style={{
-                ...glassStyle,
-                background: expiringSoon.length > 0 ? 'rgba(255, 247, 237, 0.4)' : glassStyle.background,
-                border: expiringSoon.length > 0 ? '1px solid rgba(255, 180, 180, 0.4)' : glassStyle.border,
-            }}
+            className={`glass-panel p-8 rounded-2xl relative overflow-hidden group cursor-pointer transition-colors ${
+                expiringSoon.length > 0 ? 'border-orange-200 bg-orange-50/50' : ''
+            }`}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/5 to-transparent pointer-events-none" />
-
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-8 md:mb-12">
-                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.8)] border border-white/40 backdrop-blur-md ${
-                        expiringSoon.length > 0 ? 'bg-orange-100/60 text-orange-600' : 'bg-green-100/60 text-green-600'
-                    }`}>
-                        <AlertCircle size={28} className="md:w-8 md:h-8" strokeWidth={2} />
-                    </div>
-                    <div className="w-12 h-12 rounded-full border border-white/50 flex items-center justify-center bg-white/30 group-hover:bg-[#003385] group-hover:text-white transition-colors duration-300 backdrop-blur-sm shadow-sm">
-                        <ArrowRight size={20} />
-                    </div>
+            <div className="flex justify-between items-start mb-6">
+                <div className={`${expiringSoon.length > 0 ? 'bg-orange-500' : 'bg-green-600'} text-white p-3 rounded-lg shadow-lg`}>
+                    <AlertCircle size={24} />
                 </div>
-                <div>
-                    <p className={`text-6xl md:text-7xl font-bold mb-2 drop-shadow-sm tracking-tight ${
-                        expiringSoon.length > 0 ? 'text-orange-900' : 'text-brand-900'
-                    }`}>
-                        {expiringSoon.length}
-                    </p>
-                    <p className={`${
-                        expiringSoon.length > 0 ? 'text-orange-900/60' : 'text-brand-900/60'
-                    } font-bold uppercase tracking-widest text-xs md:text-sm`}>
-                        Items expiring soon
-                    </p>
-                </div>
+                <ArrowRight className="text-brand-400 group-hover:text-brand-900 group-hover:translate-x-1 transition-all" />
+            </div>
+            <div className="flex items-baseline gap-2">
+                <span className={`text-6xl font-bold ${expiringSoon.length > 0 ? 'text-orange-900' : 'text-brand-900'}`}>
+                    {expiringSoon.length}
+                </span>
+                <span className={`text-sm font-bold uppercase tracking-widest ${expiringSoon.length > 0 ? 'text-orange-700' : 'text-brand-500'}`}>
+                    Expiring Soon
+                </span>
+            </div>
+             <div className="absolute -bottom-6 -right-6 text-brand-900/5 rotate-[-15deg]">
+                <AlertCircle size={180} />
             </div>
         </div>
       </div>
 
-      {/* Quick Actions Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 px-2">
-         {/* Shopping List - NOW GLASS STYLE (Blue Tinted) */}
+      {/* Action Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         {/* Shopping List */}
          <button 
             onClick={() => setActiveTab('shopping')}
-            className="flex flex-row items-center justify-between p-8 md:p-10 rounded-[2.5rem] transition-all group hover:scale-[1.01] relative overflow-hidden"
-            style={{
-                background: 'rgba(0, 51, 133, 0.85)', // Dark blue glass
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 8px 32px 0 rgba(0, 51, 133, 0.25)'
-            }}
+            className="glass-card text-left p-8 rounded-2xl flex flex-col justify-between h-48 group relative overflow-hidden"
          >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
-            <div className="relative z-10 flex flex-col items-start text-white">
-                <ShoppingBag size={32} className="mb-4 md:mb-6 text-blue-300" />
-                <span className="font-bold text-2xl md:text-3xl">Shopping List</span>
-                <span className="text-blue-200/80 text-sm mt-1 font-medium">Smart replenish active</span>
+            <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-white/40 to-transparent transform skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
+            <div className="flex justify-between w-full z-10">
+                <ShoppingBag size={32} className="text-brand-700" />
+                <ArrowRight className="opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="relative z-10 w-14 h-14 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors border border-white/10 text-white">
-                 <ArrowRight />
+            <div className="z-10">
+                <h3 className="text-2xl font-bold text-brand-900">Shopping List</h3>
+                <p className="text-brand-500 text-sm font-bold mt-1">Smart replenish active</p>
             </div>
          </button>
 
-         {/* Meal Plan - GLASS STYLE */}
+         {/* Meal Plan */}
          <button 
             onClick={() => setActiveTab('mealplanner')}
-            className="flex flex-row items-center justify-between p-8 md:p-10 rounded-[2.5rem] transition-all group hover:scale-[1.01] relative overflow-hidden"
-            style={glassStyle}
+            className="glass-card text-left p-8 rounded-2xl flex flex-col justify-between h-48 group relative overflow-hidden"
          >
-             <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent pointer-events-none" />
-             <div className="relative z-10 flex flex-row items-center justify-between w-full">
-                 <div className="flex flex-col items-start">
-                    <Utensils size={32} className="mb-4 md:mb-6 text-[#4275ff]" />
-                    <span className="font-bold text-2xl md:text-3xl text-brand-900">Meal Plan</span>
-                    <span className="text-brand-900/60 text-sm mt-1 font-medium">AI suggestions ready</span>
-                </div>
-                <div className="w-14 h-14 bg-white/40 rounded-full flex items-center justify-center group-hover:bg-[#003385] group-hover:text-white transition-colors border border-white/40 shadow-sm text-brand-900">
-                    <ArrowRight />
-                </div>
+            <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-white/40 to-transparent transform skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
+            <div className="flex justify-between w-full z-10">
+                <Utensils size={32} className="text-brand-700" />
+                <ArrowRight className="opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="z-10">
+                <h3 className="text-2xl font-bold text-brand-900">Meal OS</h3>
+                <p className="text-brand-500 text-sm font-bold mt-1">Generate Menu</p>
             </div>
          </button>
       </div>
 
-      {/* Daily Insight - GLASS STYLE */}
-      <div 
-        className="relative overflow-hidden p-8 md:p-12 rounded-[2.5rem] text-center mx-2"
-        style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.4)'
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent pointer-events-none" />
-        <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-blue-50/40 backdrop-blur-md rounded-full text-[#003385] text-xs font-extrabold uppercase tracking-widest border border-blue-100/40 shadow-sm">
-                <TrendingUp size={14} strokeWidth={3} /> Kitchen Wisdom
-            </div>
-            <p className="text-xl md:text-3xl font-bold text-brand-900 leading-relaxed max-w-3xl mx-auto drop-shadow-sm">
-                "A clean fridge is the canvas for a delicious meal. Organise by category to reduce waste."
-            </p>
-        </div>
+      {/* Quote/Footer - Styled as a system log/message */}
+      <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-brand-700">
+        <p className="font-mono text-sm md:text-base text-brand-800 leading-relaxed">
+            <span className="font-bold text-brand-500 uppercase text-xs tracking-wider block mb-1">System Message:</span>
+            "Organization is the foundation of culinary creativity. Keep the inventory updated for optimal results."
+        </p>
       </div>
     </div>
   );

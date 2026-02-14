@@ -130,12 +130,18 @@ export const userService = {
         if (!user) return null;
         
         let tier = SubscriptionTier.Free;
+        let householdSize = 1;
+        let dietaryRestrictions: string[] = [];
+        let familyName = "";
         
         // 1. Try fetching from DB
         try {
-            const { data: profile } = await supabase.from('profiles').select('subscription_tier').eq('id', user.id).single();
-            if (profile?.subscription_tier) {
-                tier = profile.subscription_tier as SubscriptionTier;
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            if (profile) {
+                if (profile.subscription_tier) tier = profile.subscription_tier as SubscriptionTier;
+                if (profile.household_size) householdSize = profile.household_size;
+                if (profile.dietary_restrictions) dietaryRestrictions = profile.dietary_restrictions;
+                if (profile.family_name) familyName = profile.family_name;
             }
         } catch (e) {
             console.warn("Could not fetch profile from DB");
@@ -151,11 +157,26 @@ export const userService = {
             id: user.id,
             email: user.email || '',
             subscriptionTier: tier,
+            familyName: familyName,
             preferences: {
-                dietaryRestrictions: [],
-                householdSize: 1
+                dietaryRestrictions,
+                householdSize
             }
         };
+    },
+
+    async updateProfile(updates: { familyName?: string, householdSize?: number, dietaryRestrictions?: string[] }): Promise<void> {
+        if (supabase) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const dbUpdates: any = {};
+                if (updates.familyName !== undefined) dbUpdates.family_name = updates.familyName;
+                if (updates.householdSize !== undefined) dbUpdates.household_size = updates.householdSize;
+                if (updates.dietaryRestrictions !== undefined) dbUpdates.dietary_restrictions = updates.dietaryRestrictions;
+
+                await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
+            }
+        }
     },
 
     // Used for the Demo Mode

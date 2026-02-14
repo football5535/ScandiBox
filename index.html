@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#003385">
+    <meta name="theme-color" content="#0f172a">
     <title>ScandiBox - Intelligent Food OS</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="https://hyigbttxlisjosgmxcef.supabase.co/storage/v1/object/sign/yes/ChatGPT%20Image%2014.%20feb.%202026,%2020_12_26.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMDM1MjQyZC04NDhhLTQyOWQtOTMxOC1jNTczZmU1NWI4ZDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ5ZXMvQ2hhdEdQVCBJbWFnZSAxNC4gZmViLiAyMDI2LCAyMF8xMl8yNi5wbmciLCJpYXQiOjE3NzExMDAzMjYsImV4cCI6MTg2NTcwODMyNn0.LCzRwkxTtOPR1579u7DtRXDseqfZS_vxshK6JqUyEDA">
@@ -28,36 +28,37 @@
               'safe-right': 'env(safe-area-inset-right)',
             },
             borderRadius: {
-              '4xl': '2rem',
-              '5xl': '2.5rem',
+              '4xl': '1.5rem',
+              '5xl': '2rem',
+              'xl': '0.75rem',
+              '2xl': '1rem',
+              '3xl': '1.25rem'
             },
             colors: {
               brand: {
-                50: '#f0f6ff',
-                100: '#e0edff',
-                200: '#c7ddff',
-                300: '#9ec4ff',
-                400: '#709fff',
-                500: '#4275ff',
-                600: '#1a50ff',
-                700: '#003385', // Deep Blue Primary
-                800: '#002a6b',
-                900: '#00255c',
-                950: '#00163b',
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                300: '#cbd5e1',
+                400: '#94a3b8',
+                500: '#64748b',
+                600: '#475569',
+                700: '#0f172a', // Deep Slate / Navy
+                800: '#1e293b',
+                900: '#020617',
               }
             },
             boxShadow: {
-              'soft': '0 8px 30px -4px rgba(0, 51, 133, 0.08)',
-              'glow': '0 0 20px rgba(66, 117, 255, 0.4)',
-              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+              'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+              'glass-hover': '0 10px 40px rgba(0, 0, 0, 0.2)',
             },
             animation: {
-              'fade-in': 'fadeIn 0.5s ease-out',
+              'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
             },
             keyframes: {
               fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
+                '0%': { opacity: '0', transform: 'translateY(10px) scale(0.98)' },
+                '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
               }
             }
           }
@@ -79,6 +80,58 @@
   }
 }
 </script>
+<style>
+  /* Global Glass Background */
+  body {
+    background-image: url('https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=2068&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: #cbd5e1; /* Fallback */
+    color: #0f172a;
+  }
+  
+  /* Standard Glass Class */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+
+  .nav-glass {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* Scrollbar cleaning */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
 </head>
   <body>
     <div id="root"></div>

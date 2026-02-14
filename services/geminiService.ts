@@ -53,15 +53,19 @@ export class GeminiService {
     }
   }
 
-  async suggestRecipes(inventory: InventoryItem[]): Promise<Recipe[]> {
+  async suggestRecipes(inventory: InventoryItem[], householdSize: number = 1, dietaryRestrictions: string[] = []): Promise<Recipe[]> {
     if (!this.ai) return [];
     
     const inventoryList = inventory.map(i => `${i.quantity} ${i.name}`).join(', ');
+    const dietString = dietaryRestrictions.length > 0 ? `Dietary restrictions: ${dietaryRestrictions.join(', ')}.` : '';
     
     try {
       const response = await this.ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Given these ingredients: ${inventoryList}. Suggest 3 healthy, scandinavian-inspired or simple recipes.`,
+        contents: `Given these ingredients: ${inventoryList}. 
+                   This is for a household of ${householdSize} people. ${dietString}
+                   Suggest 3 healthy, scandinavian-inspired or simple recipes using the ingredients provided.
+                   Adjust portion sizes effectively.`,
         config: {
             responseMimeType: "application/json",
             responseSchema: {
@@ -113,6 +117,36 @@ export class GeminiService {
       } catch (e) {
           console.error("Shopping list generation failed", e);
           return [];
+      }
+  }
+
+  async getNutritionAnalysis(itemName: string): Promise<{ calories: string, benefits: string, warning: string }> {
+      if (!this.ai) return { calories: "N/A", benefits: "Service unavailable", warning: "" };
+
+      try {
+          const response = await this.ai.models.generateContent({
+              model: 'gemini-3-flash-preview',
+              contents: `Analyze the nutritional value of: ${itemName}. 
+              Return a JSON object with: 
+              - 'calories' (approx per 100g)
+              - 'benefits' (a short sentence about health benefits)
+              - 'warning' (a short sentence if high sugar/fat, otherwise empty string).`,
+              config: {
+                  responseMimeType: "application/json",
+                  responseSchema: {
+                      type: Type.OBJECT,
+                      properties: {
+                          calories: { type: Type.STRING },
+                          benefits: { type: Type.STRING },
+                          warning: { type: Type.STRING }
+                      }
+                  }
+              }
+          });
+          const text = response.text || "{}";
+          return JSON.parse(cleanJsonString(text));
+      } catch (e) {
+          return { calories: "Unknown", benefits: "Analysis failed", warning: "" };
       }
   }
 }
