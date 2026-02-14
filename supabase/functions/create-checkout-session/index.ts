@@ -5,8 +5,8 @@
 console.info('create-checkout-session function starting');
 
 const STRIPE_API_BASE = 'https://api.stripe.com/v1';
-// Using the provided secret key.
-const STRIPE_SECRET = 'mk_1SeivkRrZfGBUlV6TjsYIinO';
+// Retrieve the secret from the environment variables (Supabase Secrets)
+const STRIPE_SECRET = Deno.env.get('STRIPE_SECRET_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,7 +48,7 @@ async function createCheckoutSession(priceId: string, returnUrl: string) {
   try {
     if (!STRIPE_SECRET) {
         console.error("STRIPE_SECRET_KEY is missing/empty.");
-        return new Response(JSON.stringify({ error: 'Stripe secret not configured' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 });
+        return new Response(JSON.stringify({ error: 'Stripe secret not configured in Supabase Secrets (STRIPE_SECRET_KEY).' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 });
     }
 
     const { priceId, returnUrl } = await req.json();
