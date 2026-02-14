@@ -71,7 +71,14 @@ export const translations = {
       autoReplenish: "AUTO-REPLENISH",
       autoPro: "AUTO (PRO ONLY)",
       entryName: "Entry name...",
-      logEmpty: "LOG EMPTY"
+      logEmpty: "LOG EMPTY",
+      finishTrip: "COMPLETE TRIP",
+      finishTripDesc: "Move checked items to fridge?",
+      confirmDates: "SET DEFAULT EXPIRY",
+      itemsToMove: "Items moving to inventory:",
+      moveSuccess: "Trip completed. Fridge updated.",
+      upgradeToMove: "Upgrade to Standard to auto-move items to fridge!",
+      move: "MOVE TO FRIDGE"
     },
     mealPlanner: {
       title: "MEAL_OS",
@@ -90,6 +97,7 @@ export const translations = {
       cookNow: "INITIATE COOK MODE",
       addToShop: "ADD TO SHOP",
       addToPlan: "ADD TO PLAN",
+      removeFromPlan: "REMOVE",
       selectDay: "Select Day Sequence",
       dayAdded: "Assigned to {day}",
       step: "STEP",
@@ -203,7 +211,14 @@ export const translations = {
       autoReplenish: "AUTO-PÅFYLL",
       autoPro: "AUTO (KUN PRO)",
       entryName: "Varenavn...",
-      logEmpty: "LOGG TOM"
+      logEmpty: "LOGG TOM",
+      finishTrip: "FERDIG MED TUR",
+      finishTripDesc: "Flytt avkryssede varer til kjøleskap?",
+      confirmDates: "SETT STANDARD UTLØPSDATO",
+      itemsToMove: "Varer som flyttes:",
+      moveSuccess: "Tur fullført. Kjøleskap oppdatert.",
+      upgradeToMove: "Oppgrader til Standard for å flytte varer automatisk!",
+      move: "FLYTT TIL KJØLESKAP"
     },
     mealPlanner: {
       title: "MÅLTID_OS",
@@ -222,6 +237,7 @@ export const translations = {
       cookNow: "INITIER KOKKEMODUS",
       addToShop: "LEGG TIL LISTE",
       addToPlan: "LEGG TIL PLAN",
+      removeFromPlan: "FJERN",
       selectDay: "Velg Dag",
       dayAdded: "Tildelt {day}",
       step: "STEG",

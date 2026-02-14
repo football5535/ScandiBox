@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { InventoryItem, Recipe, SubscriptionTier, UserProfile } from '../types';
 import { geminiService } from '../services/geminiService';
 import { userService, recipeService, inventoryService, shoppingService, plannerService } from '../services/supabaseService';
-import { ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Zap, Lock, Printer, Bookmark, Play, CheckCircle, ArrowRight, ArrowLeft, RefreshCw, BoxSelect, ShoppingCart, Check, CalendarPlus, X } from 'lucide-react';
+import { ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Zap, Lock, Printer, Bookmark, Play, CheckCircle, ArrowRight, ArrowLeft, RefreshCw, BoxSelect, ShoppingCart, Check, CalendarPlus, X, Trash2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface MealPlannerProps {
@@ -108,6 +108,11 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
       setAddedToPlanIds(prev => new Set(prev).add(recipeToAddToPlan.id));
       setIsDaySelectorOpen(false);
       setRecipeToAddToPlan(null);
+  };
+
+  const handleRemoveFromPlan = (id: string) => {
+      const updated = plannerService.removeRecipeFromPlan(id);
+      setRecipes(updated);
   };
 
   const startCooking = (recipe: Recipe) => {
@@ -341,7 +346,7 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
       {activeTab === 'generate' && recipes.length > 0 && (
           <div className="grid grid-cols-1 gap-6">
               {recipes.map((recipe, index) => (
-                   <div key={recipe.id} className="glass-card rounded-xl overflow-hidden flex flex-col md:flex-row relative">
+                   <div key={recipe.id} className="glass-card rounded-xl overflow-hidden flex flex-col md:flex-row relative group">
                        {/* Day Indicator */}
                        <div className="bg-brand-900 text-white p-4 md:w-24 flex md:flex-col items-center justify-center gap-2 font-mono font-bold tracking-widest text-xs md:text-sm">
                            <span>{t(`days.${recipe.day || days[index]}`)?.substring(0, 3).toUpperCase() || `DAY ${index + 1}`}</span>
@@ -349,7 +354,7 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
 
                        <div className="p-6 flex-1">
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="text-xl font-bold text-brand-900 font-mono uppercase leading-tight">{recipe.title}</h3>
+                                <h3 className="text-xl font-bold text-brand-900 font-mono uppercase leading-tight pr-12">{recipe.title}</h3>
                                 <div className="flex items-center gap-2">
                                     <span className="flex items-center text-brand-400 text-[10px] font-bold uppercase tracking-widest">
                                         <Clock size={12} className="mr-1" /> {recipe.timeEstimate}
@@ -358,12 +363,24 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
                             </div>
                             <p className="text-brand-600 text-xs leading-relaxed mb-4">{recipe.description}</p>
                             
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2 mb-4">
                                 <button 
                                     onClick={() => startCooking(recipe)}
                                     className="px-4 py-2 bg-green-500 hover:bg-green-600 text-black font-bold rounded-lg text-xs uppercase tracking-widest flex items-center gap-2 transition-colors"
                                 >
                                     <Play size={14} /> {t('mealPlanner.startCooking')}
+                                </button>
+                                <button 
+                                    onClick={() => addMissingIngredients(recipe)}
+                                    disabled={addedToShopIds.has(recipe.id)}
+                                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors ${
+                                        addedToShopIds.has(recipe.id) 
+                                        ? 'bg-brand-100 text-brand-400 cursor-default'
+                                        : 'bg-white border border-brand-200 text-brand-700 hover:bg-brand-50'
+                                    }`}
+                                >
+                                    <ShoppingCart size={14} />
+                                    {addedToShopIds.has(recipe.id) ? t('explore.added') : t('mealPlanner.addToShop')}
                                 </button>
                                 <button 
                                     onClick={() => toggleExpand(recipe.id)}
@@ -395,6 +412,15 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Remove Button - Positioned absolute top right */}
+                            <button 
+                                onClick={() => handleRemoveFromPlan(recipe.id)}
+                                className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                title={t('mealPlanner.removeFromPlan')}
+                            >
+                                <Trash2 size={16} />
+                            </button>
                        </div>
                    </div>
               ))}

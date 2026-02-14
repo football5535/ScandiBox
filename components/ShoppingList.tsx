@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingItem, InventoryItem, SubscriptionTier } from '../types';
-import { shoppingService, userService } from '../services/supabaseService';
+import { ShoppingItem, InventoryItem, SubscriptionTier, Category } from '../types';
+import { shoppingService, userService, inventoryService } from '../services/supabaseService';
 import { geminiService } from '../services/geminiService';
-import { Plus, Trash2, Check, Sparkles, Loader2, ShoppingCart } from 'lucide-react';
+import { Plus, Trash2, Check, Sparkles, Loader2, ShoppingCart, ArrowRight, PackageCheck, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface ShoppingListProps {
@@ -17,6 +17,10 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
   const [loading, setLoading] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [userTier, setUserTier] = useState<SubscriptionTier>(SubscriptionTier.Free);
+  
+  // Finish Trip State
+  const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
+  const [tripExpiryDate, setTripExpiryDate] = useState('');
 
   useEffect(() => {
     loadItems();
@@ -67,6 +71,56 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
     }
   };
 
+  const handleFinishTripClick = () => {
+    const checkedCount = items.filter(i => i.isChecked).length;
+    if (checkedCount === 0) return;
+
+    if (userTier === SubscriptionTier.Free) {
+        alert(t('shopping.upgradeToMove'));
+        return;
+    }
+
+    // Set default date to 1 week from now
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    setTripExpiryDate(nextWeek.toISOString().split('T')[0]);
+    setIsFinishModalOpen(true);
+  };
+
+  const confirmFinishTrip = async () => {
+     setIsFinishModalOpen(false);
+     setLoading(true);
+
+     const checkedItems = items.filter(i => i.isChecked);
+     let count = 0;
+     
+     for (const item of checkedItems) {
+         // Default logic since we don't know exact category without AI.
+         // In a real app we might ask Gemini to classify these too, but for speed we use 'Other' or try to reuse logic.
+         
+         const diff = new Date(tripExpiryDate).getTime() - new Date().getTime();
+         const days = Math.ceil(diff / (1000 * 3600 * 24));
+
+         await inventoryService.addItem({
+             name: item.name,
+             category: Category.Other, 
+             quantity: '1', 
+             daysUntilExpiry: days,
+             expiryDate: tripExpiryDate,
+             status: 'active',
+             addedDate: new Date().toISOString()
+         });
+
+         await shoppingService.deleteItem(item.id);
+         count++;
+     }
+
+     await loadItems();
+     alert(t('shopping.moveSuccess'));
+  };
+
+  const checkedItemsCount = items.filter(i => i.isChecked).length;
+
   return (
     <div className="space-y-6 animate-fade-in pt-4">
         <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
@@ -74,18 +128,35 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
                 <h2 className="text-3xl font-bold text-brand-900 tracking-tight font-mono">{t('shopping.title')}</h2>
             </div>
             
-            <button
-                onClick={generateSmartList}
-                disabled={aiLoading}
-                className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all border ${
-                    userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax
-                    ? 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
-                    : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                }`}
-            >
-                {aiLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Sparkles className="mr-2" size={16} />}
-                {userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax ? t('shopping.autoReplenish') : t('shopping.autoPro')}
-            </button>
+            <div className="flex gap-2">
+                {checkedItemsCount > 0 && (
+                    <button
+                        onClick={handleFinishTripClick}
+                        className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all border ${
+                            userTier === SubscriptionTier.Free
+                            ? 'bg-gray-100 text-gray-400 border-gray-200' 
+                            : 'bg-brand-900 text-white border-brand-900 hover:bg-black'
+                        }`}
+                        title={userTier === SubscriptionTier.Free ? "Available on Standard Plan" : ""}
+                    >
+                        <PackageCheck className="mr-2" size={16} />
+                        {t('shopping.finishTrip')}
+                    </button>
+                )}
+
+                <button
+                    onClick={generateSmartList}
+                    disabled={aiLoading}
+                    className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all border ${
+                        userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax
+                        ? 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
+                        : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                    }`}
+                >
+                    {aiLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Sparkles className="mr-2" size={16} />}
+                    {userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax ? t('shopping.autoReplenish') : t('shopping.autoPro')}
+                </button>
+            </div>
         </div>
 
         <div className="glass-panel p-2 rounded-xl border border-brand-200 flex gap-2">
@@ -141,6 +212,44 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
                         </button>
                     </div>
                 ))}
+            </div>
+        )}
+
+        {/* FINISH TRIP MODAL */}
+        {isFinishModalOpen && (
+            <div className="fixed inset-0 z-[60] bg-brand-900/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+                    <button onClick={() => setIsFinishModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-brand-900"><X size={20} /></button>
+                    
+                    <div className="flex items-center gap-3 mb-6 text-brand-900">
+                        <PackageCheck size={28} />
+                        <h3 className="text-2xl font-bold font-mono tracking-tight">{t('shopping.finishTrip')}</h3>
+                    </div>
+
+                    <p className="text-sm font-bold text-brand-500 mb-4 uppercase tracking-widest">{t('shopping.itemsToMove')}</p>
+                    <div className="max-h-40 overflow-y-auto mb-6 space-y-2 pr-2">
+                        {items.filter(i => i.isChecked).map(i => (
+                            <div key={i.id} className="flex items-center gap-2 text-brand-800 font-bold text-sm bg-brand-50 p-2 rounded">
+                                <Check size={14} className="text-green-500" /> {i.name}
+                            </div>
+                        ))}
+                    </div>
+
+                    <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">{t('shopping.confirmDates')}</label>
+                    <input 
+                        type="date" 
+                        value={tripExpiryDate} 
+                        onChange={e => setTripExpiryDate(e.target.value)} 
+                        className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none focus:border-brand-900 font-bold text-brand-900 mb-6" 
+                    />
+
+                    <button 
+                        onClick={confirmFinishTrip} 
+                        className="w-full py-4 bg-brand-900 text-white font-bold rounded-lg hover:bg-black transition-colors flex items-center justify-center gap-2 uppercase tracking-widest"
+                    >
+                        <ArrowRight size={18} /> {t('shopping.move')}
+                    </button>
+                </div>
             </div>
         )}
     </div>

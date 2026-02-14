@@ -54,6 +54,13 @@ export const plannerService = {
     
     this.savePlan(updated);
     return updated;
+  },
+
+  removeRecipeFromPlan(id: string): Recipe[] {
+      const plan = this.getPlan();
+      const updated = plan.filter(r => r.id !== id);
+      this.savePlan(updated);
+      return updated;
   }
 };
 
