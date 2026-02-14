@@ -35,6 +35,14 @@ create table if not exists public.profiles (
   updated_at timestamp with time zone
 );
 
+-- SAFER MIGRATION: Ensure language column exists even if table was created before
+do $$ 
+begin 
+  if not exists (select 1 from information_schema.columns where table_name = 'profiles' and column_name = 'language') then
+    alter table public.profiles add column language text default 'en'; 
+  end if; 
+end $$;
+
 -- 4. SAVED RECIPES TABLE
 create table if not exists public.saved_recipes (
   id uuid default gen_random_uuid() primary key,

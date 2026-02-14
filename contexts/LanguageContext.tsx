@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { translations } from '../utils/translations';
-import { userService } from '../services/supabaseService';
+import { userService, supabase } from '../services/supabaseService';
 import { Language } from '../types';
 
 type LanguageContextType = {
@@ -15,13 +15,30 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('en');
 
-  useEffect(() => {
-    // Load initial language preference
-    userService.getProfile().then(p => {
+  const fetchLanguage = async () => {
+    try {
+        const p = await userService.getProfile();
         if (p && p.preferences.language) {
             setLanguageState(p.preferences.language);
         }
-    });
+    } catch (e) {
+        console.warn("Failed to fetch language preference", e);
+    }
+  };
+
+  useEffect(() => {
+    // Load initial language preference
+    fetchLanguage();
+
+    // Listen for auth changes to reload preference if user switches
+    if (supabase) {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+                fetchLanguage();
+            }
+        });
+        return () => subscription.unsubscribe();
+    }
   }, []);
 
   const setLanguage = async (lang: Language) => {
