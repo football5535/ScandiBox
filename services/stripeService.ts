@@ -1,7 +1,6 @@
 import { loadStripe } from '@stripe/stripe-js';
-import { STRIPE_PUBLISHABLE_KEY, STRIPE_PRICES } from '../constants';
-import { supabase, userService } from './supabaseService';
-import { SubscriptionTier } from '../types';
+import { STRIPE_PUBLISHABLE_KEY } from '../constants';
+import { supabase } from './supabaseService';
 
 export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
@@ -9,33 +8,53 @@ export const stripeService = {
   async checkout(priceId: string) {
     if (!supabase) throw new Error("Supabase not initialized");
 
-    // --- CRITICAL VALIDATION ---
-    if (priceId.startsWith('prod_')) {
-        alert("Configuration Error: You are using a Product ID. Please use a Price ID (starts with 'price_').");
+    if (!priceId) {
+        alert("Price ID is missing.");
         return;
     }
 
     try {
-        console.log("Initiating checkout with Price ID:", priceId);
+        // 1. Refresh Session to ensure we have a valid Token
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        // Try to invoke the backend function
+        if (sessionError || !session) {
+            console.error("Session Error:", sessionError);
+            alert("Your session has expired. Please log in again.");
+            return;
+        }
+
+        console.log("Contacting payment server with Price ID:", priceId);
+        
+        // 2. Invoke Function with Explicit Auth Header
         const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-            body: { priceId, returnUrl: window.location.origin }
+            body: { priceId, returnUrl: window.location.origin },
+            headers: {
+                Authorization: `Bearer ${session.access_token}` // Explicitly pass the token
+            }
         });
 
         if (error) {
-            console.warn("Supabase Function Error Details:", error);
-            throw error; // Throw to catch block for fallback
+            console.error("Supabase Function Error:", error);
+            
+            let errorMsg = error.message || "Unknown error";
+            
+            // Handle 401 specifically
+            if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
+                alert("Payment Error (401): The server rejected your request. \n\nTroubleshooting:\n1. Check if the Edge Function is deployed.\n2. Ensure 'STRIPE_SECRET_KEY' is set in Supabase Secrets.");
+                return;
+            }
+
+            throw error;
         }
 
         if (!data?.sessionId) {
-            throw new Error("Invalid response from payment server.");
+            throw new Error("Invalid response from payment server: No Session ID returned.");
         }
 
         const stripe = await stripePromise;
         if (!stripe) throw new Error("Stripe SDK failed to load.");
 
-        // Type assertion to 'any' to avoid strict type checking on redirectToCheckout which is sometimes deprecated but valid
+        // 3. Redirect to Stripe
         const { error: stripeError } = await (stripe as any).redirectToCheckout({
             sessionId: data.sessionId
         });
@@ -43,33 +62,8 @@ export const stripeService = {
         if (stripeError) throw stripeError;
 
     } catch (err: any) {
-        console.error("Payment Server Error:", err);
-        
-        // --- DEMO MODE FALLBACK ---
-        // If the backend fails (likely 401/500 because Edge Functions aren't deployed or secrets missing),
-        // offer the user a way to test the features anyway.
-        
-        // Specific check for the user's reported error (Status 400 usually means Missing Secret or Bad Request)
-        const errorMessage = typeof err === 'object' ? JSON.stringify(err) : String(err);
-        const isBackendConfigError = errorMessage.includes('400') || errorMessage.includes('401') || errorMessage.includes('500');
-
-        let message = "Connection to Payment Server failed.\n\n";
-        if (isBackendConfigError) {
-            message += "It looks like the Backend Edge Function is not deployed or missing the STRIPE_SECRET_KEY.\n\n";
-        }
-        message += "Would you like to simulate a successful payment to test the Pro features (AI Scanning & Meal Plans)?";
-
-        const shouldSimulate = window.confirm(message);
-
-        if (shouldSimulate) {
-            let targetTier = SubscriptionTier.Standard;
-            if (priceId === STRIPE_PRICES.PRO) targetTier = SubscriptionTier.Pro;
-            if (priceId === STRIPE_PRICES.PRO_MAX) targetTier = SubscriptionTier.ProMax;
-
-            await userService.upgradeDemoTier(targetTier);
-            alert(`Success! You have been upgraded to ${targetTier} (Demo Mode).`);
-            window.location.reload();
-        }
+        console.error("Checkout Failed:", err);
+        alert(`Payment Error: ${err.message || "Unknown error occurred"}`);
     }
   }
 };

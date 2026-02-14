@@ -18,80 +18,92 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
     return "Good evening";
   };
 
+  const glassStyle = {
+    background: 'rgba(255, 255, 255, 0.25)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.05)'
+  };
+
   return (
-    <div className="relative space-y-8 md:space-y-12 animate-fade-in pt-2">
+    <div className="relative space-y-8 md:space-y-12 animate-fade-in pt-4">
       
-      {/* ENHANCED BACKGROUND BLOBS */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-[800px] overflow-hidden -z-10 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] md:w-[700px] h-[500px] md:h-[700px] bg-blue-400/20 rounded-full blur-[100px] md:blur-[130px] mix-blend-multiply animate-pulse" style={{ animationDuration: '8s' }} />
-          <div className="absolute top-[10%] right-[-10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-indigo-300/20 rounded-full blur-[100px] md:blur-[120px] mix-blend-multiply animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
-          <div className="absolute top-[40%] left-[20%] w-[300px] h-[300px] bg-teal-200/20 rounded-full blur-[80px] mix-blend-multiply" />
+      {/* BACKGROUND BLOBS FOR GLASS EFFECT */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[140%] h-[1000px] overflow-hidden -z-10 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse" style={{ animationDuration: '8s' }} />
+          <div className="absolute top-[20%] right-[-5%] w-[500px] h-[500px] bg-indigo-400/20 rounded-full blur-[120px] mix-blend-multiply animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+          <div className="absolute top-[40%] left-[20%] w-[400px] h-[400px] bg-teal-300/20 rounded-full blur-[100px] mix-blend-multiply" />
       </div>
 
-      <header className="mb-4 md:mb-8 px-2 relative z-10">
-        <h1 className="text-3xl md:text-6xl font-bold text-brand-900 tracking-tighter leading-tight drop-shadow-sm">
+      <header className="mb-6 md:mb-10 px-4 relative z-10">
+        <h1 className="text-4xl md:text-7xl font-bold text-brand-900 tracking-tighter leading-[1.1] drop-shadow-sm">
           {getGreeting()}.<br />
-          <span className="text-[#4275ff] opacity-90">Your kitchen {expiringSoon.length > 0 ? 'needs attention.' : 'is in balance.'}</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4275ff] to-brand-700 opacity-90">
+            Your kitchen {expiringSoon.length > 0 ? 'needs attention.' : 'is in balance.'}
+          </span>
         </h1>
       </header>
 
       {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 px-2">
         
-        {/* Inventory Status - GLASS STYLE */}
+        {/* Inventory Status - GLASS */}
         <div 
             onClick={() => setActiveTab('inventory')}
-            className="group cursor-pointer relative overflow-hidden bg-white/40 backdrop-blur-xl p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] hover:shadow-glow hover:-translate-y-2 transition-all duration-300"
+            className="group cursor-pointer relative overflow-hidden p-8 md:p-10 rounded-[2.5rem] transition-all duration-300 hover:-translate-y-2 hover:shadow-glow"
+            style={glassStyle}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/10 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/5 to-transparent pointer-events-none" />
             
             <div className="relative z-10">
-                <div className="flex justify-between items-start mb-6 md:mb-10">
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-50/80 backdrop-blur-sm rounded-[1rem] md:rounded-[1.5rem] flex items-center justify-center text-[#003385] shadow-inner border border-white/50">
-                        <Leaf size={24} className="md:w-7 md:h-7" />
+                <div className="flex justify-between items-start mb-8 md:mb-12">
+                    <div className="w-14 h-14 md:w-16 md:h-16 bg-white/60 backdrop-blur-md rounded-2xl flex items-center justify-center text-[#003385] shadow-[inset_0_2px_4px_rgba(255,255,255,0.8)] border border-white/40">
+                        <Leaf size={28} className="md:w-8 md:h-8" strokeWidth={2} />
                     </div>
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/60 flex items-center justify-center bg-white/40 group-hover:bg-[#003385] group-hover:text-white transition-colors duration-300 backdrop-blur-sm">
-                        <ArrowRight size={18} className="md:w-5 md:h-5" />
+                    <div className="w-12 h-12 rounded-full border border-white/50 flex items-center justify-center bg-white/30 group-hover:bg-[#003385] group-hover:text-white transition-colors duration-300 backdrop-blur-sm shadow-sm">
+                        <ArrowRight size={20} />
                     </div>
                 </div>
                 <div>
-                    <p className="text-5xl md:text-6xl font-bold text-brand-900 mb-2 drop-shadow-sm">{totalItems}</p>
-                    <p className="text-brand-800/60 font-bold uppercase tracking-wider text-xs md:text-sm">Ingredients tracked</p>
+                    <p className="text-6xl md:text-7xl font-bold text-brand-900 mb-2 drop-shadow-sm tracking-tight">{totalItems}</p>
+                    <p className="text-brand-900/60 font-bold uppercase tracking-widest text-xs md:text-sm">Ingredients tracked</p>
                 </div>
             </div>
         </div>
 
-        {/* Expiration Alert - GLASS STYLE */}
+        {/* Expiration Alert - GLASS */}
         <div 
             onClick={() => setActiveTab('inventory')}
-            className={`group cursor-pointer relative overflow-hidden backdrop-blur-xl p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] hover:shadow-glow hover:-translate-y-2 transition-all duration-300 ${
-                expiringSoon.length > 0 
-                ? 'bg-orange-50/40 border-orange-100/60' 
-                : 'bg-white/40 border-white/60'
-            }`}
+            className="group cursor-pointer relative overflow-hidden p-8 md:p-10 rounded-[2.5rem] transition-all duration-300 hover:-translate-y-2 hover:shadow-glow"
+            style={{
+                ...glassStyle,
+                background: expiringSoon.length > 0 ? 'rgba(255, 247, 237, 0.4)' : glassStyle.background,
+                border: expiringSoon.length > 0 ? '1px solid rgba(255, 180, 180, 0.4)' : glassStyle.border,
+            }}
         >
-             <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/10 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/5 to-transparent pointer-events-none" />
 
             <div className="relative z-10">
-                <div className="flex justify-between items-start mb-6 md:mb-10">
-                    <div className={`w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[1.5rem] flex items-center justify-center shadow-inner border border-white/50 backdrop-blur-sm ${
-                        expiringSoon.length > 0 ? 'bg-orange-100/80 text-orange-600' : 'bg-green-50/80 text-green-600'
+                <div className="flex justify-between items-start mb-8 md:mb-12">
+                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.8)] border border-white/40 backdrop-blur-md ${
+                        expiringSoon.length > 0 ? 'bg-orange-100/60 text-orange-600' : 'bg-green-100/60 text-green-600'
                     }`}>
-                        <AlertCircle size={24} className="md:w-7 md:h-7" />
+                        <AlertCircle size={28} className="md:w-8 md:h-8" strokeWidth={2} />
                     </div>
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/60 flex items-center justify-center bg-white/40 group-hover:bg-[#003385] group-hover:text-white transition-colors duration-300 backdrop-blur-sm">
-                        <ArrowRight size={18} className="md:w-5 md:h-5" />
+                    <div className="w-12 h-12 rounded-full border border-white/50 flex items-center justify-center bg-white/30 group-hover:bg-[#003385] group-hover:text-white transition-colors duration-300 backdrop-blur-sm shadow-sm">
+                        <ArrowRight size={20} />
                     </div>
                 </div>
                 <div>
-                    <p className={`text-5xl md:text-6xl font-bold mb-2 drop-shadow-sm ${
+                    <p className={`text-6xl md:text-7xl font-bold mb-2 drop-shadow-sm tracking-tight ${
                         expiringSoon.length > 0 ? 'text-orange-900' : 'text-brand-900'
                     }`}>
                         {expiringSoon.length}
                     </p>
                     <p className={`${
-                        expiringSoon.length > 0 ? 'text-orange-800/70' : 'text-brand-800/60'
-                    } font-bold uppercase tracking-wider text-xs md:text-sm`}>
+                        expiringSoon.length > 0 ? 'text-orange-900/60' : 'text-brand-900/60'
+                    } font-bold uppercase tracking-widest text-xs md:text-sm`}>
                         Items expiring soon
                     </p>
                 </div>
@@ -100,33 +112,44 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
       </div>
 
       {/* Quick Actions Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 px-2">
+         {/* Shopping List - NOW GLASS STYLE (Blue Tinted) */}
          <button 
             onClick={() => setActiveTab('shopping')}
-            className="flex flex-row items-center justify-between p-6 md:p-10 bg-[#003385]/90 backdrop-blur-md text-white rounded-[2.5rem] md:rounded-[3rem] shadow-xl shadow-blue-900/20 hover:bg-[#00255c] transition-all group hover:scale-[1.01] border border-blue-400/20"
+            className="flex flex-row items-center justify-between p-8 md:p-10 rounded-[2.5rem] transition-all group hover:scale-[1.01] relative overflow-hidden"
+            style={{
+                background: 'rgba(0, 51, 133, 0.85)', // Dark blue glass
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 8px 32px 0 rgba(0, 51, 133, 0.25)'
+            }}
          >
-            <div className="flex flex-col items-start">
-                <ShoppingBag size={28} className="mb-4 md:mb-6 text-blue-300" />
-                <span className="font-bold text-xl md:text-2xl">Shopping List</span>
-                <span className="text-blue-200/80 text-xs md:text-sm mt-1">Smart replenish active</span>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+            <div className="relative z-10 flex flex-col items-start text-white">
+                <ShoppingBag size={32} className="mb-4 md:mb-6 text-blue-300" />
+                <span className="font-bold text-2xl md:text-3xl">Shopping List</span>
+                <span className="text-blue-200/80 text-sm mt-1 font-medium">Smart replenish active</span>
             </div>
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors border border-white/10">
+            <div className="relative z-10 w-14 h-14 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors border border-white/10 text-white">
                  <ArrowRight />
             </div>
          </button>
 
+         {/* Meal Plan - GLASS STYLE */}
          <button 
             onClick={() => setActiveTab('mealplanner')}
-            className="flex flex-row items-center justify-between p-6 md:p-10 bg-white/40 backdrop-blur-xl text-brand-900 border border-white/60 rounded-[2.5rem] md:rounded-[3rem] shadow-lg hover:bg-white/50 transition-all group hover:scale-[1.01] relative overflow-hidden"
+            className="flex flex-row items-center justify-between p-8 md:p-10 rounded-[2.5rem] transition-all group hover:scale-[1.01] relative overflow-hidden"
+            style={glassStyle}
          >
-             <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-transparent pointer-events-none" />
+             <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent pointer-events-none" />
              <div className="relative z-10 flex flex-row items-center justify-between w-full">
                  <div className="flex flex-col items-start">
-                    <Utensils size={28} className="mb-4 md:mb-6 text-[#4275ff]" />
-                    <span className="font-bold text-xl md:text-2xl">Meal Plan</span>
-                    <span className="text-brand-800/60 text-xs md:text-sm mt-1">AI suggestions ready</span>
+                    <Utensils size={32} className="mb-4 md:mb-6 text-[#4275ff]" />
+                    <span className="font-bold text-2xl md:text-3xl text-brand-900">Meal Plan</span>
+                    <span className="text-brand-900/60 text-sm mt-1 font-medium">AI suggestions ready</span>
                 </div>
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-white/50 rounded-full flex items-center justify-center group-hover:bg-[#003385] group-hover:text-white transition-colors border border-white/40">
+                <div className="w-14 h-14 bg-white/40 rounded-full flex items-center justify-center group-hover:bg-[#003385] group-hover:text-white transition-colors border border-white/40 shadow-sm text-brand-900">
                     <ArrowRight />
                 </div>
             </div>
@@ -134,13 +157,21 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
       </div>
 
       {/* Daily Insight - GLASS STYLE */}
-      <div className="relative overflow-hidden bg-white/30 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] text-center border border-white/60 shadow-sm">
-        <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent pointer-events-none" />
+      <div 
+        className="relative overflow-hidden p-8 md:p-12 rounded-[2.5rem] text-center mx-2"
+        style={{
+            background: 'rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.4)'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent pointer-events-none" />
         <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 bg-blue-50/50 backdrop-blur-sm rounded-full text-[#003385] text-xs font-bold uppercase tracking-widest border border-blue-100/50">
-                <TrendingUp size={14} /> Kitchen Wisdom
+            <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-blue-50/40 backdrop-blur-md rounded-full text-[#003385] text-xs font-extrabold uppercase tracking-widest border border-blue-100/40 shadow-sm">
+                <TrendingUp size={14} strokeWidth={3} /> Kitchen Wisdom
             </div>
-            <p className="text-lg md:text-3xl font-bold text-brand-900 leading-relaxed max-w-3xl mx-auto drop-shadow-sm">
+            <p className="text-xl md:text-3xl font-bold text-brand-900 leading-relaxed max-w-3xl mx-auto drop-shadow-sm">
                 "A clean fridge is the canvas for a delicious meal. Organise by category to reduce waste."
             </p>
         </div>
