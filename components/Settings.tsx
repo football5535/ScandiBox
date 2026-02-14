@@ -2,12 +2,12 @@ import React from 'react';
 import { SUBSCRIPTION_PLANS } from '../constants';
 import { SubscriptionTier } from '../types';
 import { stripeService } from '../services/stripeService';
-import { Check, ShieldCheck, CreditCard, Star } from 'lucide-react';
+import { Check, ShieldCheck, Star } from 'lucide-react';
 
 const Settings: React.FC = () => {
   const currentPlan = SubscriptionTier.Free;
 
-  const handleSubscribe = async (tier: string, priceId?: string) => {
+  const handleSubscribe = async (priceId?: string) => {
       if (!priceId) {
           alert("This plan is free or not configured.");
           return;
@@ -63,7 +63,7 @@ const Settings: React.FC = () => {
             </ul>
 
             <button 
-                onClick={() => handleSubscribe(plan.name, plan.priceId)}
+                onClick={() => handleSubscribe(plan.priceId)}
                 className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] ${
                     plan.tier === SubscriptionTier.Pro
                     ? 'bg-white text-brand-900'

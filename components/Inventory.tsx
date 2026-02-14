@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { InventoryItem, Category, SubscriptionTier } from '../types';
-import { Camera, Plus, Trash2, Loader2, X, ScanLine, AlertCircle, Search, Save } from 'lucide-react';
+import { Plus, Trash2, Loader2, X, ScanLine, Search, Save } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { inventoryService, userService } from '../services/supabaseService';
 
