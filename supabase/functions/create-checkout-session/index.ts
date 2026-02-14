@@ -5,8 +5,7 @@
 console.info('create-checkout-session function starting');
 
 const STRIPE_API_BASE = 'https://api.stripe.com/v1';
-// Using the provided secret key directly. 
-// Note: 'mk_' is likely a Managed Key ID. Stripe API requires a Secret Key ('sk_live_' or 'sk_test_').
+// Using the provided secret key.
 const STRIPE_SECRET = 'mk_1SeivkRrZfGBUlV6TjsYIinO';
 
 const corsHeaders = {
@@ -36,10 +35,7 @@ async function createCheckoutSession(priceId: string, returnUrl: string) {
   if (!resp.ok) {
     const text = await resp.text();
     console.error("Stripe Error:", text);
-    // Explicitly mentioning key issues to help debugging
-    if (resp.status === 401) {
-         throw new Error(`Stripe Authentication Failed. The provided secret key (${STRIPE_SECRET.substring(0, 7)}...) is invalid. Check if it is a valid 'sk_' key.`);
-    }
+    // Return the actual error from Stripe so the client can debug
     throw new Error(`Stripe API error: ${resp.status} ${text}`);
   }
 
@@ -53,12 +49,6 @@ async function createCheckoutSession(priceId: string, returnUrl: string) {
     if (!STRIPE_SECRET) {
         console.error("STRIPE_SECRET_KEY is missing/empty.");
         return new Response(JSON.stringify({ error: 'Stripe secret not configured' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 });
-    }
-
-    // Check for common configuration error: Using a Managed Key instead of a Secret Key
-    if (STRIPE_SECRET.startsWith('mk_')) {
-        console.error("Configuration Error: Using 'mk_' key.");
-        return new Response(JSON.stringify({ error: "Configuration Error: You provided a Managed Key (mk_...). Stripe requires a Secret Key (starts with sk_live_ or sk_test_). Please update the function code." }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
     }
 
     const { priceId, returnUrl } = await req.json();

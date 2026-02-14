@@ -8,7 +8,7 @@ export const APP_LOGO_URL = "https://hyigbttxlisjosgmxcef.supabase.co/storage/v1
 // User provided Live Price IDs.
 export const STRIPE_PRICES = {
     STANDARD: 'price_1T0qS2RrZfGBUlV6ojPbI7Nw',
-    PRO: 'prod_Tyo40YhcwaRGuS', // Note: User provided a Product ID. Ensure this is mapped to a Price ID in Stripe if possible, or update if this causes issues.
+    PRO: 'price_1T0qSFRrZfGBUlV62kT9uUyP', // User provided ID.
     PRO_MAX: 'price_1T0qSkRrZfGBUlV6cq3sz6kC'
 };
 

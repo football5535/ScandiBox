@@ -25,13 +25,7 @@ const Settings: React.FC = () => {
       
       // 1. Validate Price ID Configuration
       if (!plan.priceId) {
-          alert("Configuration Error: Price ID is missing for this plan.");
-          return;
-      }
-
-      // Check for common mistake: Using Product ID (prod_) instead of Price ID (price_)
-      if (plan.priceId.startsWith('prod_')) {
-          alert(`Configuration Error: The Price ID for ${plan.name} ('${plan.priceId}') looks like a Product ID. \n\nPlease update constants.ts with the correct Price ID (should start with 'price_').`);
+          alert(`Configuration Missing: The ${plan.name} plan is currently unavailable (Missing Price ID).`);
           return;
       }
 
@@ -47,11 +41,14 @@ const Settings: React.FC = () => {
           // Provide more helpful context for known configuration errors
           if (error.message.includes("No such price")) {
               userMessage = `Stripe Configuration Error: The Price ID '${plan.priceId}' does not exist in your Stripe account.`;
-          } else if (error.message.includes("Managed Key") || error.message.includes("Invalid API Key")) {
-              userMessage = "Server Configuration Error: Invalid Stripe Secret Key. Please ensure you are using an 'sk_live_' key, not an 'mk_' key.";
+              if (plan.priceId.startsWith('prod_')) {
+                  userMessage += "\n\nTip: You are using a Product ID (prod_...). You must use a Price ID (starts with price_...)";
+              }
+          } else if (error.message.includes("Invalid API Key")) {
+              userMessage = "Payment System Configuration Error (Invalid API Key). Please check the Secret Key in the backend function.";
           }
 
-          alert(`Payment Failed: ${userMessage}\n\nNote: Payment is required to upgrade.`);
+          alert(`Payment Failed: ${userMessage}`);
       } finally {
           setLoadingPriceId(null);
       }
