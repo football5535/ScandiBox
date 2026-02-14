@@ -1,0 +1,15 @@
+{
+  "short_name": "ScandiBox",
+  "name": "ScandiBox Kitchen OS",
+  "icons": [
+    {
+      "src": "https://hyigbttxlisjosgmxcef.supabase.co/storage/v1/object/sign/yes/ChatGPT%20Image%2014.%20feb.%202026,%2020_12_26.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMDM1MjQyZC04NDhhLTQyOWQtOTMxOC1jNTczZmU1NWI4ZDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ5ZXMvQ2hhdEdQVCBJbWFnZSAxNC4gZmViLiAyMDI2LCAyMF8xMl8yNi5wbmciLCJpYXQiOjE3NzExMDAzMjYsImV4cCI6MTg2NTcwODMyNn0.LCzRwkxTtOPR1579u7DtRXDseqfZS_vxshK6JqUyEDA",
+      "type": "image/png",
+      "sizes": "1024x1024"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#003385",
+  "background_color": "#f8fafc"
+}

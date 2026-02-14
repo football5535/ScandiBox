@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#003385">
+    <title>ScandiBox - Intelligent Food OS</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="https://hyigbttxlisjosgmxcef.supabase.co/storage/v1/object/sign/yes/ChatGPT%20Image%2014.%20feb.%202026,%2020_12_26.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMDM1MjQyZC04NDhhLTQyOWQtOTMxOC1jNTczZmU1NWI4ZDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ5ZXMvQ2hhdEdQVCBJbWFnZSAxNC4gZmViLiAyMDI2LCAyMF8xMl8yNi5wbmciLCJpYXQiOjE3NzExMDAzMjYsImV4cCI6MTg2NTcwODMyNn0.LCzRwkxTtOPR1579u7DtRXDseqfZS_vxshK6JqUyEDA">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Anonymous+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Anonymous Pro"', 'monospace'],
+              mono: ['"Anonymous Pro"', 'monospace'],
+            },
+            spacing: {
+              'safe-top': 'env(safe-area-inset-top)',
+              'safe-bottom': 'env(safe-area-inset-bottom)',
+              'safe-left': 'env(safe-area-inset-left)',
+              'safe-right': 'env(safe-area-inset-right)',
+            },
+            borderRadius: {
+              '4xl': '2rem',
+              '5xl': '2.5rem',
+            },
+            colors: {
+              brand: {
+                50: '#f0f6ff',
+                100: '#e0edff',
+                200: '#c7ddff',
+                300: '#9ec4ff',
+                400: '#709fff',
+                500: '#4275ff',
+                600: '#1a50ff',
+                700: '#003385', // Deep Blue Primary
+                800: '#002a6b',
+                900: '#00255c',
+                950: '#00163b',
+              }
+            },
+            boxShadow: {
+              'soft': '0 8px 30px -4px rgba(0, 51, 133, 0.08)',
+              'glow': '0 0 20px rgba(66, 117, 255, 0.4)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.95.3",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "@stripe/stripe-js": "https://esm.sh/@stripe/stripe-js@^8.7.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

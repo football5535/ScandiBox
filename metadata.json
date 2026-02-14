@@ -1,0 +1,7 @@
+{
+  "name": "ScandiBox",
+  "description": "A minimalist, AI-powered fridge and pantry planner. Scan your food, track expiration, and get automated recipe suggestions.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
