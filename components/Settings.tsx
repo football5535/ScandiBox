@@ -22,8 +22,16 @@ const Settings: React.FC = () => {
 
   const handleSubscribe = async (plan: typeof SUBSCRIPTION_PLANS[0]) => {
       if (plan.tier === currentPlan) return;
+      
+      // 1. Validate Price ID Configuration
       if (!plan.priceId) {
-          alert("This plan is not configured correctly.");
+          alert("Configuration Error: Price ID is missing for this plan.");
+          return;
+      }
+
+      // Check for common mistake: Using Product ID (prod_) instead of Price ID (price_)
+      if (plan.priceId.startsWith('prod_')) {
+          alert(`Configuration Error: The Price ID for ${plan.name} ('${plan.priceId}') looks like a Product ID. \n\nPlease update constants.ts with the correct Price ID (should start with 'price_').`);
           return;
       }
 
@@ -33,7 +41,17 @@ const Settings: React.FC = () => {
           await stripeService.checkout(plan.priceId);
       } catch (error: any) {
           console.error("Subscription Error:", error);
-          alert(`Payment Failed: ${error.message}\n\nPlease contact support if this persists.`);
+          
+          let userMessage = error.message;
+          
+          // Provide more helpful context for known configuration errors
+          if (error.message.includes("No such price")) {
+              userMessage = `Stripe Configuration Error: The Price ID '${plan.priceId}' does not exist in your Stripe account.`;
+          } else if (error.message.includes("Managed Key") || error.message.includes("Invalid API Key")) {
+              userMessage = "Server Configuration Error: Invalid Stripe Secret Key. Please ensure you are using an 'sk_live_' key, not an 'mk_' key.";
+          }
+
+          alert(`Payment Failed: ${userMessage}\n\nNote: Payment is required to upgrade.`);
       } finally {
           setLoadingPriceId(null);
       }
