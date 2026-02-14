@@ -7,15 +7,23 @@ const cleanJsonString = (str: string) => {
 };
 
 export class GeminiService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
 
   constructor() {
-    const apiKey = process.env.API_KEY || ''; 
-    this.ai = new GoogleGenAI({ apiKey });
+    const apiKey = process.env.API_KEY;
+    if (apiKey) {
+        try {
+            this.ai = new GoogleGenAI({ apiKey });
+        } catch (e) {
+            console.error("Gemini Client Initialization Failed:", e);
+        }
+    } else {
+        console.warn("Gemini API Key is missing. AI features will use mock data.");
+    }
   }
 
   async analyzeImage(base64Image: string): Promise<Partial<InventoryItem>[]> {
-    if (!process.env.API_KEY) {
+    if (!this.ai) {
       console.warn("No API Key provided. Returning mock data.");
       return [
         { name: 'Detected Apple', category: Category.Produce, quantity: '3', daysUntilExpiry: 7 },
@@ -47,7 +55,7 @@ export class GeminiService {
   }
 
   async suggestRecipes(inventory: InventoryItem[]): Promise<Recipe[]> {
-    if (!process.env.API_KEY) return [];
+    if (!this.ai) return [];
     
     const inventoryList = inventory.map(i => `${i.quantity} ${i.name}`).join(', ');
     
@@ -82,7 +90,7 @@ export class GeminiService {
   }
 
   async generateShoppingList(inventory: InventoryItem[]): Promise<string[]> {
-      if (!process.env.API_KEY) return [];
+      if (!this.ai) return [];
       
       const inventoryList = inventory.map(i => `${i.name} (Expires in ${i.daysUntilExpiry} days)`).join(', ');
 
