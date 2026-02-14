@@ -14,6 +14,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
 // --- MOCK STORAGE FALLBACKS ---
 const LOCAL_INV_KEY = 'scandibox_inventory_v3';
 const LOCAL_SHOP_KEY = 'scandibox_shopping_v1';
+const LOCAL_TIER_KEY = 'scandibox_demo_tier';
 
 // --- INVENTORY SERVICE ---
 export const inventoryService = {
@@ -128,11 +129,22 @@ export const userService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return null;
         
-        // Fetch profile from DB
         let tier = SubscriptionTier.Free;
-        const { data: profile } = await supabase.from('profiles').select('subscription_tier').eq('id', user.id).single();
-        if (profile?.subscription_tier) {
-            tier = profile.subscription_tier as SubscriptionTier;
+        
+        // 1. Try fetching from DB
+        try {
+            const { data: profile } = await supabase.from('profiles').select('subscription_tier').eq('id', user.id).single();
+            if (profile?.subscription_tier) {
+                tier = profile.subscription_tier as SubscriptionTier;
+            }
+        } catch (e) {
+            console.warn("Could not fetch profile from DB");
+        }
+
+        // 2. Override with Local Demo Tier if higher/exists (For Demo purposes)
+        const localTier = localStorage.getItem(LOCAL_TIER_KEY);
+        if (localTier) {
+            tier = localTier as SubscriptionTier;
         }
 
         return {
@@ -144,5 +156,18 @@ export const userService = {
                 householdSize: 1
             }
         };
+    },
+
+    // Used for the Demo Mode
+    async upgradeDemoTier(tier: SubscriptionTier): Promise<void> {
+        localStorage.setItem(LOCAL_TIER_KEY, tier);
+        
+        // Try to update backend if possible, but don't block
+        if (supabase) {
+             const { data: { user } } = await supabase.auth.getUser();
+             if (user) {
+                 await supabase.from('profiles').upsert({ id: user.id, subscription_tier: tier });
+             }
+        }
     }
 }

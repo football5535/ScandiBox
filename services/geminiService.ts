@@ -41,8 +41,7 @@ export class GeminiService {
             ]
         },
         config: {
-            systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
-            responseMimeType: "application/json"
+            systemInstruction: GEMINI_SYSTEM_INSTRUCTION
         }
       });
 
