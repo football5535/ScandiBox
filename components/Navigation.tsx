@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Refrigerator, UtensilsCrossed, Settings as SettingsIcon, ShoppingCart, LogOut, Users } from 'lucide-react';
+import { LayoutDashboard, Refrigerator, UtensilsCrossed, Settings as SettingsIcon, ShoppingCart, LogOut, Users, Compass } from 'lucide-react';
 import { supabase } from '../services/supabaseService';
 import { APP_LOGO_URL } from '../constants';
 
@@ -16,6 +16,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
     { id: 'inventory', label: 'Kitchen', icon: Refrigerator },
+    { id: 'explore', label: 'Explore', icon: Compass },
     { id: 'shopping', label: 'Shop', icon: ShoppingCart },
     { id: 'mealplanner', label: 'Cook', icon: UtensilsCrossed },
     { id: 'family', label: 'Family', icon: Users },
@@ -41,7 +42,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
                     <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
-                        className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 border border-transparent ${
+                        className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 border border-transparent ${
                             isActive 
                             ? 'bg-white text-black shadow-lg border-white' 
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -81,7 +82,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
                         <div className={`mb-1 p-2 rounded-lg transition-all ${isActive ? 'bg-white/10' : 'group-hover:bg-white/5'}`}>
                             <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                         </div>
-                        <span className={`text-[10px] uppercase font-bold tracking-widest ${isActive ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
+                        <span className={`text-[9px] uppercase font-bold tracking-widest ${isActive ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
                             {item.label}
                         </span>
                     </button>

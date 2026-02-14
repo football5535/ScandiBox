@@ -7,6 +7,7 @@ import ShoppingList from './components/ShoppingList';
 import Settings from './components/Settings';
 import Family from './components/Family';
 import CheckMail from './components/CheckMail';
+import RecipeExplore from './components/RecipeExplore';
 import { Auth } from './components/Auth';
 import { inventoryService, supabase } from './services/supabaseService';
 import { InventoryItem } from './types';
@@ -73,6 +74,8 @@ function App() {
         return <Dashboard items={inventoryItems} setActiveTab={setActiveTab} />;
       case 'inventory':
         return <Inventory items={inventoryItems} onUpdate={loadInventory} />;
+      case 'explore':
+        return <RecipeExplore inventory={inventoryItems} />;
       case 'mealplanner':
         return <MealPlanner inventory={inventoryItems} />;
       case 'shopping':

@@ -92,6 +92,50 @@ export class GeminiService {
     }
   }
 
+  async generateDiscoverRecipes(mode: 'inventory' | 'random', inventory: InventoryItem[] = []): Promise<Recipe[]> {
+    if (!this.ai) return [];
+
+    let prompt = "";
+    if (mode === 'inventory') {
+        const inventoryList = inventory.map(i => i.name).join(', ');
+        prompt = `Create 5 unique, creative recipes that use some of these ingredients: ${inventoryList}. 
+                  Be innovative. Focus on maximizing flavor.`;
+    } else {
+        prompt = `Create 5 trending, popular, or unique recipes from around the world. 
+                  Surprise the user with something delicious.`;
+    }
+
+    try {
+        const response = await this.ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            title: { type: Type.STRING },
+                            description: { type: Type.STRING },
+                            ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+                            instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                            timeEstimate: { type: Type.STRING },
+                            matchScore: { type: Type.INTEGER, description: "Relevance score 0-100" }
+                        }
+                    }
+                }
+            }
+        });
+        const text = response.text || "[]";
+        const recipes = JSON.parse(cleanJsonString(text));
+        return recipes.map((r: any, index: number) => ({ ...r, id: `explore-${Date.now()}-${index}-${Math.random()}` }));
+    } catch (error) {
+        console.error("Explore generation failed", error);
+        return [];
+    }
+  }
+
   async generateShoppingList(inventory: InventoryItem[]): Promise<string[]> {
       if (!this.ai) return [];
       
