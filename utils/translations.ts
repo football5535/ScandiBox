@@ -1,0 +1,205 @@
+
+export const translations = {
+  en: {
+    nav: {
+      home: "Home",
+      kitchen: "Kitchen",
+      explore: "Explore",
+      shop: "Shop",
+      cook: "Cook",
+      family: "Family",
+      plan: "Plan",
+      exit: "EXIT"
+    },
+    dashboard: {
+      actionRequired: "Action Required",
+      optimal: "Optimal",
+      systemStatus: "System Status:",
+      itemsStored: "Items Stored",
+      expiringSoon: "Expiring Soon",
+      shoppingList: "Shopping List",
+      smartReplenish: "Smart replenish active",
+      mealOs: "Meal OS",
+      generateMenu: "Generate Menu",
+      systemMessage: "System Message:",
+      quote: "Organization is the foundation of culinary creativity."
+    },
+    inventory: {
+      title: "KITCHEN_DB",
+      scan: "SCAN",
+      scanning: "SCANNING...",
+      search: "Search database...",
+      all: "All",
+      qty: "QTY",
+      days: "days",
+      manualAdd: "INPUT_NEW_ITEM",
+      itemName: "Item Name",
+      category: "Category",
+      quantity: "Quantity",
+      expiryDate: "Expiry Date",
+      confirmEntry: "CONFIRM ENTRY",
+      noEntries: "No entries found"
+    },
+    explore: {
+      title: "EXPLORE_FEED",
+      subtitle: "AI Culinary Inspiration Engine",
+      dailyCredits: "Daily Credits",
+      fridgeMatch: "Fridge Match",
+      chefsSurprise: "Chef's Surprise",
+      generate: "Generate New Batch",
+      brewing: "Brewing Ideas...",
+      limitReached: "Daily Limit Reached (Upgrade)",
+      offline: "FEED OFFLINE",
+      viewRecipe: "View Recipe",
+      closeDetails: "Close Details",
+      prep: "Preparation",
+      save: "Save Recipe",
+      saved: "Saved",
+      addMissing: "Add Missing to Shop",
+      added: "Added to List"
+    },
+    shopping: {
+      title: "SUPPLY_LOG",
+      autoReplenish: "AUTO-REPLENISH",
+      autoPro: "AUTO (PRO ONLY)",
+      entryName: "Entry name...",
+      logEmpty: "LOG EMPTY"
+    },
+    mealPlanner: {
+      title: "MEAL_OS",
+      config: "Config",
+      generate: "GENERATE PLAN",
+      generating: "GENERATING...",
+      locked: "LOCKED (PRO)",
+      systemReady: "SYSTEM READY",
+      awaitingCommand: "Awaiting command to generate culinary manifest.",
+      sequence: "Sequence",
+      tabs: {
+        generate: "Generate (AI)",
+        saved: "Saved Recipes"
+      },
+      noSaved: "No saved recipes yet. Go to Explore to find some."
+    },
+    family: {
+      title: "HOUSEHOLD_CONFIG",
+      designation: "Designation",
+      occupants: "Occupants",
+      params: "Parameters & Filters",
+      addFilter: "Add filter (Vegan, Keto...)",
+      add: "Add",
+      commit: "Commit Changes"
+    },
+    settings: {
+      status: "PLAN_STATUS",
+      basic: "Basic Access Level",
+      premium: "Premium Features Unlocked",
+      cancel: "Cancel Subscription",
+      terminating: "Terminating...",
+      active: "Active Plan",
+      select: "Select",
+      language: "SYSTEM_LANGUAGE",
+      restore: "Restore Defaults"
+    }
+  },
+  no: {
+    nav: {
+      home: "Hjem",
+      kitchen: "Kjøkken",
+      explore: "Utforsk",
+      shop: "Handle",
+      cook: "Kokk",
+      family: "Familie",
+      plan: "Abonnement",
+      exit: "UT"
+    },
+    dashboard: {
+      actionRequired: "Handling Kreves",
+      optimal: "Optimalt",
+      systemStatus: "Systemstatus:",
+      itemsStored: "Varer Lagret",
+      expiringSoon: "Går ut snart",
+      shoppingList: "Handleliste",
+      smartReplenish: "Smart påfyll aktiv",
+      mealOs: "Måltid OS",
+      generateMenu: "Generer Meny",
+      systemMessage: "Systemmelding:",
+      quote: "Organisering er grunnlaget for kulinarisk kreativitet."
+    },
+    inventory: {
+      title: "KJØKKEN_DB",
+      scan: "SKANN",
+      scanning: "SKANNER...",
+      search: "Søk i database...",
+      all: "Alle",
+      qty: "ANT",
+      days: "dager",
+      manualAdd: "NY_VARE_INPUT",
+      itemName: "Varenavn",
+      category: "Kategori",
+      quantity: "Antall",
+      expiryDate: "Utløpsdato",
+      confirmEntry: "BEKREFT",
+      noEntries: "Ingen oppføringer funnet"
+    },
+    explore: {
+      title: "UTFORSK_FEED",
+      subtitle: "AI Kulinarisk Inspirasjonsmotor",
+      dailyCredits: "Daglige Kreditter",
+      fridgeMatch: "Kjøleskapsmatch",
+      chefsSurprise: "Kokkens Overraskelse",
+      generate: "Generer Ny Batch",
+      brewing: "Brygger Ideer...",
+      limitReached: "Dagsgrense Nådd (Oppgrader)",
+      offline: "FEED OFFLINE",
+      viewRecipe: "Se Oppskrift",
+      closeDetails: "Lukk Detaljer",
+      prep: "Forberedelse",
+      save: "Lagre Oppskrift",
+      saved: "Lagret",
+      addMissing: "Legg til manglende i liste",
+      added: "Lagt til liste"
+    },
+    shopping: {
+      title: "FORSYNINGSLOGG",
+      autoReplenish: "AUTO-PÅFYLL",
+      autoPro: "AUTO (KUN PRO)",
+      entryName: "Varenavn...",
+      logEmpty: "LOGG TOM"
+    },
+    mealPlanner: {
+      title: "MÅLTID_OS",
+      config: "Konfig",
+      generate: "GENERER PLAN",
+      generating: "GENERERER...",
+      locked: "LÅST (PRO)",
+      systemReady: "SYSTEM KLART",
+      awaitingCommand: "Venter på kommando for å generere kulinarisk manifest.",
+      sequence: "Sekvens",
+      tabs: {
+        generate: "Generer (AI)",
+        saved: "Lagrede Oppskrifter"
+      },
+      noSaved: "Ingen lagrede oppskrifter ennå. Gå til Utforsk for å finne noen."
+    },
+    family: {
+      title: "HUSHOLDNING_KONFIG",
+      designation: "Betegnelse",
+      occupants: "Beboere",
+      params: "Parametere & Filtere",
+      addFilter: "Legg til filter (Vegan, Keto...)",
+      add: "Legg til",
+      commit: "Lagre Endringer"
+    },
+    settings: {
+      status: "PLAN_STATUS",
+      basic: "Grunnleggende Tilgang",
+      premium: "Premium Funksjoner Låst Opp",
+      cancel: "Kanseller Abonnement",
+      terminating: "Avslutter...",
+      active: "Aktiv Plan",
+      select: "Velg",
+      language: "SYSTEMSPRÅK",
+      restore: "Gjenopprett Standard"
+    }
+  }
+};

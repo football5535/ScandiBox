@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { userService } from '../services/supabaseService';
 import { UserProfile } from '../types';
 import { Save, Users, Heart, Baby, ChefHat, Loader2 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Family: React.FC = () => {
+    const { t } = useLanguage();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [familyName, setFamilyName] = useState('');
     const [householdSize, setHouseholdSize] = useState(1);
@@ -54,14 +57,14 @@ const Family: React.FC = () => {
     return (
         <div className="space-y-8 animate-fade-in pt-4 pb-20">
             <div className="glass-panel p-6 rounded-2xl">
-                <h2 className="text-3xl font-bold text-brand-900 font-mono uppercase">HOUSEHOLD_CONFIG</h2>
+                <h2 className="text-3xl font-bold text-brand-900 font-mono uppercase">{t('family.title')}</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Family Name */}
                 <div className="glass-card p-8 rounded-xl relative overflow-hidden">
                      <Users size={60} className="absolute -bottom-4 -right-4 text-brand-900/5" />
-                     <h3 className="text-sm font-bold text-brand-500 uppercase tracking-widest mb-4">Designation</h3>
+                     <h3 className="text-sm font-bold text-brand-500 uppercase tracking-widest mb-4">{t('family.designation')}</h3>
                      <input 
                         type="text" 
                         value={familyName}
@@ -74,7 +77,7 @@ const Family: React.FC = () => {
                 {/* Household Size */}
                 <div className="glass-card p-8 rounded-xl relative overflow-hidden">
                      <Baby size={60} className="absolute -bottom-4 -right-4 text-brand-900/5" />
-                     <h3 className="text-sm font-bold text-brand-500 uppercase tracking-widest mb-4">Occupants</h3>
+                     <h3 className="text-sm font-bold text-brand-500 uppercase tracking-widest mb-4">{t('family.occupants')}</h3>
                      <div className="flex items-center gap-4">
                         <button onClick={() => setHouseholdSize(Math.max(1, householdSize - 1))} className="w-10 h-10 border border-brand-300 rounded hover:bg-brand-50">-</button>
                         <span className="text-4xl font-bold text-brand-900 font-mono">{householdSize}</span>
@@ -85,7 +88,7 @@ const Family: React.FC = () => {
                 {/* Dietary Restrictions */}
                 <div className="glass-card p-8 rounded-xl md:col-span-2 relative overflow-hidden">
                      <ChefHat size={60} className="absolute -bottom-4 -right-4 text-brand-900/5" />
-                     <h3 className="text-sm font-bold text-brand-500 uppercase tracking-widest mb-4">Parameters & Filters</h3>
+                     <h3 className="text-sm font-bold text-brand-500 uppercase tracking-widest mb-4">{t('family.params')}</h3>
                      
                      <div className="flex flex-wrap gap-2 mb-6">
                          {restrictions.map(r => (
@@ -102,10 +105,10 @@ const Family: React.FC = () => {
                             value={dietaryInput}
                             onChange={(e) => setDietaryInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && addRestriction()}
-                            placeholder="Add filter (Vegan, Keto...)"
+                            placeholder={t('family.addFilter')}
                             className="flex-1 p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none focus:border-brand-900 font-bold text-brand-900 font-mono"
                         />
-                        <button onClick={addRestriction} className="px-6 bg-brand-200 text-brand-900 font-bold rounded-lg hover:bg-brand-300 uppercase text-xs tracking-widest">Add</button>
+                        <button onClick={addRestriction} className="px-6 bg-brand-200 text-brand-900 font-bold rounded-lg hover:bg-brand-300 uppercase text-xs tracking-widest">{t('family.add')}</button>
                      </div>
                 </div>
             </div>
@@ -116,7 +119,7 @@ const Family: React.FC = () => {
                 className="w-full py-4 bg-brand-900 text-white font-bold rounded-lg hover:bg-black transition-all flex items-center justify-center gap-3 uppercase tracking-widest shadow-lg"
             >
                 {isSaving ? <Loader2 className="animate-spin" /> : <Save />}
-                Commit Changes
+                {t('family.commit')}
             </button>
         </div>
     );

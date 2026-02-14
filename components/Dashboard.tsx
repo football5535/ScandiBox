@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { InventoryItem } from '../types';
 import { ArrowRight, Leaf, ShoppingBag, Utensils, AlertCircle, Calendar } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface DashboardProps {
   items: InventoryItem[];
@@ -8,6 +10,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
+  const { t } = useLanguage();
   const expiringSoon = items.filter(i => (i.daysUntilExpiry || 0) <= 3);
   const totalItems = items.length;
 
@@ -22,9 +25,9 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
             <Calendar size={14} /> {dateStr}
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-brand-900 leading-tight">
-          System Status: <br/>
+          {t('dashboard.systemStatus')} <br/>
           <span className={`border-b-4 ${expiringSoon.length > 0 ? 'border-orange-500 text-brand-900' : 'border-green-500 text-brand-900'}`}>
-             {expiringSoon.length > 0 ? 'Action Required' : 'Optimal'}
+             {expiringSoon.length > 0 ? t('dashboard.actionRequired') : t('dashboard.optimal')}
           </span>
         </h1>
       </header>
@@ -44,7 +47,7 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
             </div>
             <div className="flex items-baseline gap-2">
                 <span className="text-6xl font-bold text-brand-900">{totalItems}</span>
-                <span className="text-sm font-bold text-brand-500 uppercase tracking-widest">Items Stored</span>
+                <span className="text-sm font-bold text-brand-500 uppercase tracking-widest">{t('dashboard.itemsStored')}</span>
             </div>
             <div className="absolute -bottom-6 -right-6 text-brand-900/5 rotate-[-15deg]">
                 <Leaf size={180} />
@@ -69,7 +72,7 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
                     {expiringSoon.length}
                 </span>
                 <span className={`text-sm font-bold uppercase tracking-widest ${expiringSoon.length > 0 ? 'text-orange-700' : 'text-brand-500'}`}>
-                    Expiring Soon
+                    {t('dashboard.expiringSoon')}
                 </span>
             </div>
              <div className="absolute -bottom-6 -right-6 text-brand-900/5 rotate-[-15deg]">
@@ -91,8 +94,8 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
                 <ArrowRight className="opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="z-10">
-                <h3 className="text-2xl font-bold text-brand-900">Shopping List</h3>
-                <p className="text-brand-500 text-sm font-bold mt-1">Smart replenish active</p>
+                <h3 className="text-2xl font-bold text-brand-900">{t('dashboard.shoppingList')}</h3>
+                <p className="text-brand-500 text-sm font-bold mt-1">{t('dashboard.smartReplenish')}</p>
             </div>
          </button>
 
@@ -107,8 +110,8 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
                 <ArrowRight className="opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="z-10">
-                <h3 className="text-2xl font-bold text-brand-900">Meal OS</h3>
-                <p className="text-brand-500 text-sm font-bold mt-1">Generate Menu</p>
+                <h3 className="text-2xl font-bold text-brand-900">{t('dashboard.mealOs')}</h3>
+                <p className="text-brand-500 text-sm font-bold mt-1">{t('dashboard.generateMenu')}</p>
             </div>
          </button>
       </div>
@@ -116,8 +119,8 @@ const Dashboard: React.FC<DashboardProps> = ({ items, setActiveTab }) => {
       {/* Quote/Footer - Styled as a system log/message */}
       <div className="glass-panel p-6 rounded-2xl border-l-4 border-l-brand-700">
         <p className="font-mono text-sm md:text-base text-brand-800 leading-relaxed">
-            <span className="font-bold text-brand-500 uppercase text-xs tracking-wider block mb-1">System Message:</span>
-            "Organization is the foundation of culinary creativity. Keep the inventory updated for optimal results."
+            <span className="font-bold text-brand-500 uppercase text-xs tracking-wider block mb-1">{t('dashboard.systemMessage')}</span>
+            "{t('dashboard.quote')}"
         </p>
       </div>
     </div>

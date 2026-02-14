@@ -1,3 +1,4 @@
+
 -- 1. INVENTORY ITEMS TABLE
 create table if not exists public.inventory_items (
   id uuid default gen_random_uuid() primary key,
@@ -28,19 +29,32 @@ create table if not exists public.profiles (
   subscription_tier text default 'Free', 
   household_size integer default 1,
   dietary_restrictions text[],
-  family_name text, -- Added for Family Tab
+  family_name text,
+  language text default 'en',
   stripe_customer_id text,
   updated_at timestamp with time zone
 );
 
--- 4. ENABLE RLS (Row Level Security)
+-- 4. SAVED RECIPES TABLE
+create table if not exists public.saved_recipes (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  title text not null,
+  description text,
+  ingredients jsonb,
+  instructions jsonb,
+  time_estimate text,
+  match_score integer,
+  created_at timestamp with time zone default now()
+);
+
+-- 5. ENABLE RLS (Row Level Security)
 alter table public.inventory_items enable row level security;
 alter table public.shopping_items enable row level security;
 alter table public.profiles enable row level security;
+alter table public.saved_recipes enable row level security;
 
--- 5. RLS POLICIES - STRICT ISOLATION
--- Users can ONLY access data where their auth.uid matches the record's user_id.
-
+-- 6. RLS POLICIES - STRICT ISOLATION
 -- Inventory
 do $$ begin
   drop policy if exists "Users can view own inventory" on public.inventory_items;
@@ -94,17 +108,32 @@ do $$ begin
   create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
 end $$;
 
--- 6. TRIGGERS FOR NEW USERS
+-- Saved Recipes
+do $$ begin
+  drop policy if exists "Users can view own recipes" on public.saved_recipes;
+  create policy "Users can view own recipes" on public.saved_recipes for select using (auth.uid() = user_id);
+end $$;
+
+do $$ begin
+  drop policy if exists "Users can insert own recipes" on public.saved_recipes;
+  create policy "Users can insert own recipes" on public.saved_recipes for insert with check (auth.uid() = user_id);
+end $$;
+
+do $$ begin
+  drop policy if exists "Users can delete own recipes" on public.saved_recipes;
+  create policy "Users can delete own recipes" on public.saved_recipes for delete using (auth.uid() = user_id);
+end $$;
+
+-- 7. TRIGGERS FOR NEW USERS
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, email, subscription_tier)
-  values (new.id, new.email, 'Free'); -- Default to 'Free' for new registrations
+  insert into public.profiles (id, email, subscription_tier, language)
+  values (new.id, new.email, 'Free', 'en'); 
   return new;
 end;
 $$ language plpgsql security definer;
 
--- Remove trigger if exists to avoid duplication errors (Postgres doesn't support 'create trigger if not exists' directly easily)
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users

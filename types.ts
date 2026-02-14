@@ -1,3 +1,4 @@
+
 export enum Category {
   Produce = 'Produce',
   Dairy = 'Dairy',
@@ -34,6 +35,7 @@ export interface Recipe {
   matchScore: number; // 0-100 based on inventory
   timeEstimate: string;
   calories?: number;
+  user_id?: string; // Optional for DB saved ones
 }
 
 export enum SubscriptionTier {
@@ -51,5 +53,8 @@ export interface UserProfile {
   preferences: {
     dietaryRestrictions: string[];
     householdSize: number;
+    language?: 'en' | 'no';
   };
 }
+
+export type Language = 'en' | 'no';

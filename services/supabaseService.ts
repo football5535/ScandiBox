@@ -1,5 +1,6 @@
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { InventoryItem, UserProfile, SubscriptionTier, ShoppingItem } from '../types';
+import { InventoryItem, UserProfile, SubscriptionTier, ShoppingItem, Recipe } from '../types';
 
 // Credentials provided by user
 export const SUPABASE_URL = 'https://hyigbttxlisjosgmxcef.supabase.co';
@@ -122,6 +123,51 @@ export const shoppingService = {
     }
 }
 
+// --- RECIPE SERVICE ---
+export const recipeService = {
+    async saveRecipe(recipe: Recipe): Promise<void> {
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        await supabase.from('saved_recipes').insert({
+            user_id: user.id,
+            title: recipe.title,
+            description: recipe.description,
+            ingredients: recipe.ingredients,
+            instructions: recipe.instructions,
+            time_estimate: recipe.timeEstimate,
+            match_score: recipe.matchScore
+        });
+    },
+
+    async getSavedRecipes(): Promise<Recipe[]> {
+        if (!supabase) return [];
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return [];
+
+        const { data, error } = await supabase.from('saved_recipes').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+        
+        if (error || !data) return [];
+        
+        return data.map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            description: r.description,
+            ingredients: r.ingredients,
+            instructions: r.instructions,
+            timeEstimate: r.time_estimate,
+            matchScore: r.match_score
+        }));
+    },
+    
+    async deleteSavedRecipe(id: string): Promise<void> {
+        if (!supabase) return;
+        await supabase.from('saved_recipes').delete().eq('id', id);
+    }
+}
+
+
 // --- USER SERVICE ---
 export const userService = {
     async getProfile(): Promise<UserProfile | null> {
@@ -133,6 +179,7 @@ export const userService = {
         let householdSize = 1;
         let dietaryRestrictions: string[] = [];
         let familyName = "";
+        let language: 'en' | 'no' = 'en';
         
         // 1. Try fetching from DB
         try {
@@ -142,6 +189,7 @@ export const userService = {
                 if (profile.household_size) householdSize = profile.household_size;
                 if (profile.dietary_restrictions) dietaryRestrictions = profile.dietary_restrictions;
                 if (profile.family_name) familyName = profile.family_name;
+                if (profile.language) language = profile.language;
             }
         } catch (e) {
             console.warn("Could not fetch profile from DB");
@@ -160,12 +208,13 @@ export const userService = {
             familyName: familyName,
             preferences: {
                 dietaryRestrictions,
-                householdSize
+                householdSize,
+                language
             }
         };
     },
 
-    async updateProfile(updates: { familyName?: string, householdSize?: number, dietaryRestrictions?: string[] }): Promise<void> {
+    async updateProfile(updates: { familyName?: string, householdSize?: number, dietaryRestrictions?: string[], language?: 'en' | 'no' }): Promise<void> {
         if (supabase) {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -173,6 +222,7 @@ export const userService = {
                 if (updates.familyName !== undefined) dbUpdates.family_name = updates.familyName;
                 if (updates.householdSize !== undefined) dbUpdates.household_size = updates.householdSize;
                 if (updates.dietaryRestrictions !== undefined) dbUpdates.dietary_restrictions = updates.dietaryRestrictions;
+                if (updates.language !== undefined) dbUpdates.language = updates.language;
 
                 await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
             }

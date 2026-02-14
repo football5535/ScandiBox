@@ -1,14 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import { ShoppingItem, InventoryItem, SubscriptionTier } from '../types';
 import { shoppingService, userService } from '../services/supabaseService';
 import { geminiService } from '../services/geminiService';
 import { Plus, Trash2, Check, Sparkles, Loader2, ShoppingCart } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ShoppingListProps {
   inventory: InventoryItem[];
 }
 
 const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
+  const { t } = useLanguage();
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [newItemName, setNewItemName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -68,7 +71,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
     <div className="space-y-6 animate-fade-in pt-4">
         <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
-                <h2 className="text-3xl font-bold text-brand-900 tracking-tight font-mono">SUPPLY_LOG</h2>
+                <h2 className="text-3xl font-bold text-brand-900 tracking-tight font-mono">{t('shopping.title')}</h2>
             </div>
             
             <button
@@ -81,7 +84,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
                 }`}
             >
                 {aiLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Sparkles className="mr-2" size={16} />}
-                {userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax ? 'AUTO-REPLENISH' : 'AUTO (PRO ONLY)'}
+                {userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax ? t('shopping.autoReplenish') : t('shopping.autoPro')}
             </button>
         </div>
 
@@ -91,7 +94,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addItem()}
-                placeholder="Entry name..."
+                placeholder={t('shopping.entryName')}
                 className="flex-1 pl-4 bg-transparent focus:outline-none text-brand-900 font-bold placeholder-gray-400 font-mono"
             />
             <button 
@@ -107,7 +110,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
         ) : items.length === 0 ? (
             <div className="text-center py-20 glass-panel rounded-2xl border-dashed border-2 border-brand-300">
                 <ShoppingCart size={32} className="mx-auto text-brand-300 mb-4" />
-                <p className="text-brand-500 font-bold font-mono">LOG EMPTY</p>
+                <p className="text-brand-500 font-bold font-mono">{t('shopping.logEmpty')}</p>
             </div>
         ) : (
             <div className="space-y-2">

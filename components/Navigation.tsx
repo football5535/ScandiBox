@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { LayoutDashboard, Refrigerator, UtensilsCrossed, Settings as SettingsIcon, ShoppingCart, LogOut, Users, Compass } from 'lucide-react';
 import { supabase } from '../services/supabaseService';
 import { APP_LOGO_URL } from '../constants';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface NavigationProps {
   activeTab: string;
@@ -9,18 +11,20 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
+  const { t } = useLanguage();
+
   const handleLogout = async () => {
       if (supabase) await supabase.auth.signOut();
   };
 
   const navItems = [
-    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
-    { id: 'inventory', label: 'Kitchen', icon: Refrigerator },
-    { id: 'explore', label: 'Explore', icon: Compass },
-    { id: 'shopping', label: 'Shop', icon: ShoppingCart },
-    { id: 'mealplanner', label: 'Cook', icon: UtensilsCrossed },
-    { id: 'family', label: 'Family', icon: Users },
-    { id: 'settings', label: 'Plan', icon: SettingsIcon },
+    { id: 'dashboard', label: t('nav.home'), icon: LayoutDashboard },
+    { id: 'inventory', label: t('nav.kitchen'), icon: Refrigerator },
+    { id: 'explore', label: t('nav.explore'), icon: Compass },
+    { id: 'shopping', label: t('nav.shop'), icon: ShoppingCart },
+    { id: 'mealplanner', label: t('nav.cook'), icon: UtensilsCrossed },
+    { id: 'family', label: t('nav.family'), icon: Users },
+    { id: 'settings', label: t('nav.plan'), icon: SettingsIcon },
   ];
 
   return (
@@ -60,7 +64,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
             className="flex items-center gap-3 text-sm font-bold text-gray-400 hover:text-red-400 transition-colors px-4 py-2 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/5"
          >
             <LogOut size={16} />
-            <span className="hidden lg:inline">EXIT</span>
+            <span className="hidden lg:inline">{t('nav.exit')}</span>
          </button>
       </nav>
 

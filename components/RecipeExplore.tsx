@@ -1,20 +1,25 @@
+
 import React, { useState, useEffect } from 'react';
 import { InventoryItem, Recipe, SubscriptionTier } from '../types';
 import { geminiService } from '../services/geminiService';
-import { userService } from '../services/supabaseService';
-import { Compass, Flame, ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Lock, RefreshCw, AlertTriangle } from 'lucide-react';
+import { userService, recipeService, shoppingService } from '../services/supabaseService';
+import { Compass, Flame, ChefHat, Clock, Sparkles, ChevronDown, ChevronUp, Lock, RefreshCw, AlertTriangle, BookmarkPlus, ShoppingCart, Check } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface RecipeExploreProps {
   inventory: InventoryItem[];
 }
 
 const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
+  const { t } = useLanguage();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeMode, setActiveMode] = useState<'inventory' | 'random'>('inventory');
   const [expandedRecipe, setExpandedRecipe] = useState<string | null>(null);
   const [userTier, setUserTier] = useState<SubscriptionTier>(SubscriptionTier.Free);
   const [dailyGenerations, setDailyGenerations] = useState(0);
+  const [savedRecipeIds, setSavedRecipeIds] = useState<Set<string>>(new Set());
+  const [addedIngredientsIds, setAddedIngredientsIds] = useState<Set<string>>(new Set());
 
   const DAILY_FREE_LIMIT = 3;
 
@@ -61,6 +66,34 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
       }
   };
 
+  const saveRecipe = async (recipe: Recipe) => {
+      try {
+          await recipeService.saveRecipe(recipe);
+          setSavedRecipeIds(prev => new Set(prev).add(recipe.id));
+      } catch (e) {
+          alert("Failed to save recipe.");
+      }
+  };
+
+  const addMissingIngredients = async (recipe: Recipe) => {
+      // Logic to find missing ingredients (Simple fuzzy matching against inventory)
+      const inventoryNames = inventory.map(i => i.name.toLowerCase());
+      
+      const missingIngredients = recipe.ingredients.filter(ing => {
+          // Keep ingredient if NOT found in inventory
+          // Very basic check: does inventory item name appear in ingredient string?
+          return !inventoryNames.some(invName => ing.toLowerCase().includes(invName));
+      });
+
+      // If all matched, just add all of them? No, let's add the ones we filtered.
+      const ingredientsToAdd = missingIngredients.length > 0 ? missingIngredients : recipe.ingredients;
+
+      for (const ing of ingredientsToAdd) {
+          await shoppingService.addItem(ing);
+      }
+      setAddedIngredientsIds(prev => new Set(prev).add(recipe.id));
+  };
+
   const toggleExpand = (id: string) => setExpandedRecipe(expandedRecipe === id ? null : id);
 
   return (
@@ -70,17 +103,17 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
                 <h2 className="text-3xl font-bold text-brand-900 font-mono tracking-tight flex items-center gap-2">
-                    <Compass className="text-brand-600" /> EXPLORE_FEED
+                    <Compass className="text-brand-600" /> {t('explore.title')}
                 </h2>
                 <p className="text-xs text-brand-500 mt-1 font-bold font-mono uppercase tracking-widest">
-                    AI Culinary Inspiration Engine
+                    {t('explore.subtitle')}
                 </p>
             </div>
 
             {userTier === SubscriptionTier.Free && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-brand-100 rounded-lg border border-brand-200">
                     <div className="text-[10px] font-bold uppercase tracking-widest text-brand-800">
-                        Daily Credits: {dailyGenerations}/{DAILY_FREE_LIMIT}
+                        {t('explore.dailyCredits')}: {dailyGenerations}/{DAILY_FREE_LIMIT}
                     </div>
                     {dailyGenerations >= DAILY_FREE_LIMIT && <Lock size={12} className="text-brand-500" />}
                 </div>
@@ -97,7 +130,7 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
                 }`}
               >
                   <div className="flex items-center justify-center gap-2">
-                    <ChefHat size={16} /> Fridge Match
+                    <ChefHat size={16} /> {t('explore.fridgeMatch')}
                   </div>
               </button>
               <button 
@@ -109,7 +142,7 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
                 }`}
               >
                   <div className="flex items-center justify-center gap-2">
-                    <Flame size={16} /> Chef's Surprise
+                    <Flame size={16} /> {t('explore.chefsSurprise')}
                   </div>
               </button>
           </div>
@@ -136,10 +169,10 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
         )}
         
         {isLoading 
-            ? 'Brewing Ideas...' 
+            ? t('explore.brewing')
             : userTier === SubscriptionTier.Free && dailyGenerations >= DAILY_FREE_LIMIT
-                ? 'Daily Limit Reached (Upgrade)'
-                : 'Generate New Batch'}
+                ? t('explore.limitReached')
+                : t('explore.generate')}
       </button>
 
       {/* FEED */}
@@ -147,7 +180,7 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
           {recipes.length === 0 && !isLoading && (
               <div className="text-center py-20 opacity-50">
                   <Compass size={48} className="mx-auto mb-4 text-brand-400" />
-                  <p className="font-mono font-bold text-brand-900">FEED OFFLINE</p>
+                  <p className="font-mono font-bold text-brand-900">{t('explore.offline')}</p>
                   <p className="text-xs text-brand-500 uppercase tracking-widest mt-2">Initialize generation sequence</p>
               </div>
           )}
@@ -181,19 +214,48 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
                             <span className="text-[10px] bg-brand-50 text-brand-400 px-2 py-1 rounded font-bold">+{recipe.ingredients.length - 4} more</span>
                         )}
                       </div>
+
+                      {/* ACTIONS */}
+                      <div className="flex gap-2 mb-2">
+                           <button 
+                                onClick={(e) => { e.stopPropagation(); saveRecipe(recipe); }}
+                                disabled={savedRecipeIds.has(recipe.id)}
+                                className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${
+                                    savedRecipeIds.has(recipe.id)
+                                    ? 'bg-green-100 text-green-700 border border-green-200'
+                                    : 'bg-brand-100 text-brand-700 hover:bg-brand-200'
+                                }`}
+                           >
+                               {savedRecipeIds.has(recipe.id) ? <Check size={14} /> : <BookmarkPlus size={14} />}
+                               {savedRecipeIds.has(recipe.id) ? t('explore.saved') : t('explore.save')}
+                           </button>
+
+                           <button 
+                                onClick={(e) => { e.stopPropagation(); addMissingIngredients(recipe); }}
+                                disabled={addedIngredientsIds.has(recipe.id)}
+                                className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${
+                                    addedIngredientsIds.has(recipe.id)
+                                    ? 'bg-green-100 text-green-700 border border-green-200'
+                                    : 'bg-white border border-brand-200 text-brand-700 hover:bg-gray-50'
+                                }`}
+                           >
+                               {addedIngredientsIds.has(recipe.id) ? <Check size={14} /> : <ShoppingCart size={14} />}
+                               {addedIngredientsIds.has(recipe.id) ? t('explore.added') : t('explore.addMissing')}
+                           </button>
+                      </div>
                   </div>
 
                   <button 
                     onClick={() => toggleExpand(recipe.id)}
                     className="w-full py-3 bg-white/40 hover:bg-white/80 transition-colors flex items-center justify-center text-xs font-bold text-brand-900 uppercase tracking-widest border-t border-white/20"
                 >
-                    {expandedRecipe === recipe.id ? 'Close Details' : 'View Recipe'}
+                    {expandedRecipe === recipe.id ? t('explore.closeDetails') : t('explore.viewRecipe')}
                     {expandedRecipe === recipe.id ? <ChevronUp size={14} className="ml-1" /> : <ChevronDown size={14} className="ml-1" />}
                 </button>
                 
                 {expandedRecipe === recipe.id && (
                     <div className="p-6 bg-white/60 backdrop-blur-md border-t border-brand-100">
-                        <h4 className="font-bold text-brand-900 uppercase tracking-widest text-xs mb-3">Preparation</h4>
+                        <h4 className="font-bold text-brand-900 uppercase tracking-widest text-xs mb-3">{t('explore.prep')}</h4>
                         <ol className="list-decimal list-outside ml-4 space-y-3 text-sm text-brand-800 font-mono">
                             {recipe.instructions.map((step, idx) => (
                                 <li key={idx} className="leading-relaxed pl-1">{step}</li>

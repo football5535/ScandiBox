@@ -1,8 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { InventoryItem, Category, SubscriptionTier } from '../types';
 import { Plus, Trash2, Loader2, X, ScanLine, Search, Save, Activity, Filter } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { inventoryService, userService } from '../services/supabaseService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface InventoryProps {
   items: InventoryItem[];
@@ -10,6 +12,7 @@ interface InventoryProps {
 }
 
 const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
+  const { t } = useLanguage();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -148,7 +151,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
       {/* HEADER */}
       <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-            <h2 className="text-3xl font-bold text-brand-900 tracking-tight">KITCHEN_DB</h2>
+            <h2 className="text-3xl font-bold text-brand-900 tracking-tight">{t('inventory.title')}</h2>
         </div>
         <div className="flex w-full md:w-auto gap-3">
             <button 
@@ -161,7 +164,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
                 }`}
             >
                 {isAnalyzing ? <Loader2 className="animate-spin mr-2" size={18} /> : <ScanLine className="mr-2" size={18} />}
-                {isAnalyzing ? 'SCANNING...' : 'SCAN'}
+                {isAnalyzing ? t('inventory.scanning') : t('inventory.scan')}
             </button>
             <button 
                 onClick={() => setIsAddModalOpen(true)}
@@ -178,7 +181,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
                 type="text" 
-                placeholder="Search database..." 
+                placeholder={t('inventory.search')}
                 className="w-full pl-12 pr-4 py-2 bg-transparent focus:outline-none text-brand-900 font-bold placeholder-gray-400"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -196,7 +199,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
                     : 'bg-transparent text-gray-500 border-transparent hover:bg-black/5'
                 }`}
             >
-                {cat}
+                {cat === 'All' ? t('inventory.all') : cat}
             </button>
             ))}
         </div>
@@ -216,7 +219,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
             </div>
             
             <h3 className="font-bold text-xl text-brand-900 mb-1">{item.name}</h3>
-            <p className="text-brand-500 text-sm font-bold font-mono">QTY: {item.quantity}</p>
+            <p className="text-brand-500 text-sm font-bold font-mono">{t('inventory.qty')}: {item.quantity}</p>
             
             <div className="mt-auto pt-4 border-t border-brand-100/50 flex justify-between items-center">
                  <div className="flex items-center gap-2">
@@ -225,7 +228,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
                         (item.daysUntilExpiry || 0) < 7 ? 'bg-yellow-500' : 'bg-green-500'
                     }`}></div>
                     <span className="text-xs font-bold uppercase text-brand-400">
-                        {item.daysUntilExpiry} days
+                        {item.daysUntilExpiry} {t('inventory.days')}
                     </span>
                  </div>
                  
@@ -246,7 +249,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
       {filteredItems.length === 0 && (
             <div className="py-20 text-center glass-panel rounded-2xl border-dashed border-2 border-brand-300">
                 <Search className="mx-auto text-brand-300 mb-4" size={40} />
-                <h3 className="text-xl font-bold text-brand-900">No entries found</h3>
+                <h3 className="text-xl font-bold text-brand-900">{t('inventory.noEntries')}</h3>
             </div>
       )}
 
@@ -255,31 +258,31 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
           <div className="fixed inset-0 z-[60] bg-brand-900/80 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl border border-white/20 animate-fade-in relative">
                   <button onClick={() => setIsAddModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-brand-900"><X size={20} /></button>
-                  <h3 className="text-2xl font-bold text-brand-900 mb-6 font-mono">INPUT_NEW_ITEM</h3>
+                  <h3 className="text-2xl font-bold text-brand-900 mb-6 font-mono">{t('inventory.manualAdd')}</h3>
                   
                   <form onSubmit={handleManualAdd} className="space-y-4">
                       <div>
-                          <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Item Name</label>
+                          <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">{t('inventory.itemName')}</label>
                           <input required type="text" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none focus:border-brand-900 font-bold text-brand-900" placeholder="Ex: Milk" />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Category</label>
+                            <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">{t('inventory.category')}</label>
                             <select value={newItemCategory} onChange={e => setNewItemCategory(e.target.value as Category)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none font-bold text-brand-900">
                                 {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Quantity</label>
+                            <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">{t('inventory.quantity')}</label>
                             <input type="text" value={newItemQuantity} onChange={e => setNewItemQuantity(e.target.value)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none font-bold text-brand-900" placeholder="Ex: 1L" />
                           </div>
                       </div>
                       <div>
-                          <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">Expiry Date</label>
+                          <label className="text-xs font-bold text-brand-400 uppercase tracking-widest block mb-2">{t('inventory.expiryDate')}</label>
                           <input type="date" value={newItemExpiry} onChange={e => setNewItemExpiry(e.target.value)} className="w-full p-3 bg-brand-50 border border-brand-200 rounded-lg focus:outline-none font-bold text-brand-900" />
                       </div>
                       <button type="submit" className="w-full py-4 bg-brand-900 text-white font-bold rounded-lg mt-2 hover:bg-black transition-colors flex items-center justify-center gap-2">
-                          <Save size={18} /> CONFIRM ENTRY
+                          <Save size={18} /> {t('inventory.confirmEntry')}
                       </button>
                   </form>
               </div>
@@ -317,7 +320,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, onUpdate }) => {
       {isAnalyzing && (
         <div className="fixed inset-0 z-[70] bg-brand-900/90 backdrop-blur-md flex flex-col items-center justify-center">
             <Loader2 className="animate-spin text-white mb-4" size={48} />
-            <h3 className="text-2xl font-bold text-white font-mono tracking-widest">PROCESSING...</h3>
+            <h3 className="text-2xl font-bold text-white font-mono tracking-widest">{t('inventory.scanning')}</h3>
         </div>
       )}
     </div>
