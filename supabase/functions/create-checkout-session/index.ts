@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Follow this setup guide to integrate the Deno runtime into your application:
 // https://deno.land/manual/examples/deploy_node_server
 

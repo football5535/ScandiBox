@@ -2,13 +2,13 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { InventoryItem, UserProfile, SubscriptionTier, ShoppingItem } from '../types';
 
 // Credentials provided by user
-const SUPABASE_URL = 'https://hyigbttxlisjosgmxcef.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5aWdidHR4bGlzam9zZ214Y2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwOTc0NTYsImV4cCI6MjA4NjY3MzQ1Nn0.ekC3s9Ilgf3R24AvPah6oNrh0iiBTND8yn2MaAwZn8k';
+export const SUPABASE_URL = 'https://hyigbttxlisjosgmxcef.supabase.co';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5aWdidHR4bGlzam9zZ214Y2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwOTc0NTYsImV4cCI6MjA4NjY3MzQ1Nn0.ekC3s9Ilgf3R24AvPah6oNrh0iiBTND8yn2MaAwZn8k';
 
 export let supabase: SupabaseClient | null = null;
 
-if (SUPABASE_URL && SUPABASE_KEY) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 // --- MOCK STORAGE FALLBACKS ---

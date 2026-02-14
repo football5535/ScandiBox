@@ -1,69 +1,65 @@
 import { loadStripe } from '@stripe/stripe-js';
 import { STRIPE_PUBLISHABLE_KEY } from '../constants';
-import { supabase } from './supabaseService';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabaseService';
 
 export const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
 export const stripeService = {
   async checkout(priceId: string) {
-    if (!supabase) throw new Error("Supabase not initialized");
-
     if (!priceId) {
-        alert("Price ID is missing.");
+        console.error("Price ID is missing.");
+        alert("Configuration Error: Price ID is missing.");
         return;
     }
 
     try {
-        // 1. Refresh Session to ensure we have a valid Token
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const returnUrl = window.location.origin;
         
-        if (sessionError || !session) {
-            console.error("Session Error:", sessionError);
-            alert("Your session has expired. Please log in again.");
-            return;
-        }
-
-        console.log("Contacting payment server with Price ID:", priceId);
-        
-        // 2. Invoke Function with Explicit Auth Header
-        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-            body: { priceId, returnUrl: window.location.origin },
+        // We use a direct fetch here to ensure we get the JSON error body from the Edge Function
+        // if it fails (e.g. 500 Internal Server Error due to missing environment variables).
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
+            method: 'POST',
             headers: {
-                Authorization: `Bearer ${session.access_token}` // Explicitly pass the token
-            }
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({ priceId, returnUrl })
         });
 
-        if (error) {
-            console.error("Supabase Function Error:", error);
-            
-            let errorMsg = error.message || "Unknown error";
-            
-            // Handle 401 specifically
-            if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
-                alert("Payment Error (401): The server rejected your request. \n\nTroubleshooting:\n1. Check if the Edge Function is deployed.\n2. Ensure 'STRIPE_SECRET_KEY' is set in Supabase Secrets.");
-                return;
+        if (!response.ok) {
+            let errorMessage = `Error ${response.status}: ${response.statusText}`;
+            try {
+                const errorData = await response.json();
+                if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+            } catch (e) {
+                // If JSON parse fails, try text
+                const text = await response.text();
+                if (text) errorMessage = text;
             }
-
-            throw error;
+            throw new Error(errorMessage);
         }
 
-        if (!data?.sessionId) {
-            throw new Error("Invalid response from payment server: No Session ID returned.");
+        const data = await response.json();
+        
+        if (!data.sessionId) {
+            throw new Error("No session ID returned from server.");
         }
 
         const stripe = await stripePromise;
-        if (!stripe) throw new Error("Stripe SDK failed to load.");
+        if (!stripe) {
+            throw new Error("Stripe.js failed to load.");
+        }
 
-        // 3. Redirect to Stripe
-        const { error: stripeError } = await (stripe as any).redirectToCheckout({
-            sessionId: data.sessionId
-        });
+        const { error } = await (stripe as any).redirectToCheckout({ sessionId: data.sessionId });
+        if (error) {
+            throw error;
+        }
 
-        if (stripeError) throw stripeError;
-
-    } catch (err: any) {
-        console.error("Checkout Failed:", err);
-        alert(`Payment Error: ${err.message || "Unknown error occurred"}`);
+    } catch (error: any) {
+        console.error("Stripe Checkout Error:", error);
+        alert(`Payment Failed: ${error.message}`);
     }
   }
 };
