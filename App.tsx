@@ -116,7 +116,8 @@ function App() {
       />
       
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-[1200px] mx-auto pt-4 pb-24 md:pt-0 md:mt-24 md:pb-12 px-4 md:px-6 relative z-0 safe-top safe-bottom">
+      {/* Adjusted spacing: md:pt-16 and md:mt-32 provide generous gap below the nav */}
+      <main className="flex-1 w-full max-w-[1200px] mx-auto pt-4 pb-24 md:pt-12 md:mt-32 md:pb-12 px-4 md:px-6 relative z-0 safe-top safe-bottom">
         {renderContent()}
       </main>
     </div>

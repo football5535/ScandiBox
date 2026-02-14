@@ -47,29 +47,29 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 md:p-0">
         
-        <div className="mb-8 text-center animate-fade-in">
-            <div className="w-24 h-24 mx-auto mb-4 relative bg-white rounded-xl p-2 shadow-lg">
+        <div className="mb-6 md:mb-8 text-center animate-fade-in">
+            <div className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-4 relative bg-white rounded-xl p-2 shadow-lg">
                  <img src={APP_LOGO_URL} alt="ScandiBox" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-3xl font-mono font-bold tracking-tight text-brand-900 mb-1">SCANDIBOX_OS</h1>
+            <h1 className="text-2xl md:text-3xl font-mono font-bold tracking-tight text-brand-900 mb-1">SCANDIBOX_OS</h1>
         </div>
 
-        <div className="w-full max-w-sm glass-panel p-8 rounded-2xl">
-            <div className="text-center mb-6">
-                <h2 className="text-lg font-bold uppercase tracking-widest text-brand-900">
+        <div className="w-full max-w-sm glass-panel p-6 md:p-8 rounded-2xl">
+            <div className="text-center mb-4 md:mb-6">
+                <h2 className="text-base md:text-lg font-bold uppercase tracking-widest text-brand-900">
                     {isLogin ? 'Authentication' : 'Registration'}
                 </h2>
             </div>
 
             {error && (
-                <div className="mb-6 p-3 bg-red-50 text-red-600 rounded border border-red-200 text-xs font-mono">
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded border border-red-200 text-xs font-mono">
                     ERROR: {error}
                 </div>
             )}
 
-            <form onSubmit={handleAuth} className="space-y-4">
+            <form onSubmit={handleAuth} className="space-y-3 md:space-y-4">
                 <div className="space-y-1">
                     <label className="text-[10px] font-bold text-brand-500 uppercase tracking-widest">Identity</label>
                     <div className="relative">
@@ -79,7 +79,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-10 pr-3 py-3 bg-white/50 border border-white/60 focus:bg-white focus:border-brand-900 rounded-lg focus:outline-none transition-all text-brand-900 font-bold font-mono text-sm"
+                            className="w-full pl-10 pr-3 py-2.5 md:py-3 bg-white/50 border border-white/60 focus:bg-white focus:border-brand-900 rounded-lg focus:outline-none transition-all text-brand-900 font-bold font-mono text-sm"
                             placeholder="user@domain.com"
                         />
                     </div>
@@ -94,7 +94,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-10 pr-3 py-3 bg-white/50 border border-white/60 focus:bg-white focus:border-brand-900 rounded-lg focus:outline-none transition-all text-brand-900 font-bold font-mono text-sm"
+                            className="w-full pl-10 pr-3 py-2.5 md:py-3 bg-white/50 border border-white/60 focus:bg-white focus:border-brand-900 rounded-lg focus:outline-none transition-all text-brand-900 font-bold font-mono text-sm"
                             placeholder="••••••••"
                         />
                     </div>
@@ -114,7 +114,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
                 </button>
             </form>
 
-            <div className="mt-6 text-center pt-4 border-t border-brand-200/50">
+            <div className="mt-4 md:mt-6 text-center pt-4 border-t border-brand-200/50">
                 <button 
                     onClick={() => setIsLogin(!isLogin)} 
                     className="text-brand-600 text-xs font-bold font-mono hover:text-brand-900 underline decoration-dotted"
