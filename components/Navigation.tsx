@@ -69,7 +69,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
       </nav>
 
       {/* MOBILE BOTTOM NAVIGATION - Dark Glass */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 nav-glass z-50 pb-safe-bottom pt-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 nav-glass z-50 pt-2 pb-safe-bottom">
         <div className="flex justify-around items-center h-16 px-1">
             {navItems.map((item) => {
                 const Icon = item.icon;
@@ -81,7 +81,6 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
                         className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 active:scale-95 group ${
                             isActive ? 'text-white' : 'text-gray-500'
                         }`}
-                        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
                     >
                         <div className={`mb-1 p-2 rounded-lg transition-all ${isActive ? 'bg-white/10' : 'group-hover:bg-white/5'}`}>
                             <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />

@@ -109,7 +109,13 @@ function App() {
       ) : (
         <div className="flex min-h-screen font-sans text-brand-900">
           <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-          <main className="flex-1 w-full max-w-[1200px] mx-auto pt-4 pb-24 md:pt-6 md:mt-24 md:pb-8 px-4 md:px-6 relative z-0 safe-top safe-bottom">
+          <main 
+            className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-6 relative z-0 md:pt-24 md:pb-8"
+            style={{
+                paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
+                paddingBottom: 'calc(env(safe-area-inset-bottom) + 6rem)'
+            }}
+          >
             {renderContent()}
           </main>
         </div>

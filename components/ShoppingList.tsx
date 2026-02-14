@@ -196,7 +196,10 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
 
         {/* STICKY BOTTOM ACTION BAR FOR FINISHING TRIP */}
         {checkedItemsCount > 0 && (
-            <div className="fixed bottom-20 md:bottom-8 left-0 right-0 p-4 z-40 flex justify-center animate-fade-in">
+            <div 
+                className="fixed left-0 right-0 p-4 z-40 flex justify-center animate-fade-in"
+                style={{ bottom: 'calc(env(safe-area-inset-bottom) + 5rem)' }}
+            >
                 <button
                     onClick={handleFinishTripClick}
                     className="flex items-center justify-center px-8 py-4 rounded-full font-bold shadow-2xl transition-all transform hover:scale-105 border-2 bg-green-500 text-black border-green-400 hover:bg-green-400"
