@@ -24,6 +24,7 @@ export const stripeService = {
         });
 
         if (error) {
+            console.warn("Supabase Function Error Details:", error);
             throw error; // Throw to catch block for fallback
         }
 
@@ -34,6 +35,7 @@ export const stripeService = {
         const stripe = await stripePromise;
         if (!stripe) throw new Error("Stripe SDK failed to load.");
 
+        // Type assertion to 'any' to avoid strict type checking on redirectToCheckout which is sometimes deprecated but valid
         const { error: stripeError } = await (stripe as any).redirectToCheckout({
             sessionId: data.sessionId
         });
@@ -44,12 +46,20 @@ export const stripeService = {
         console.error("Payment Server Error:", err);
         
         // --- DEMO MODE FALLBACK ---
-        // If the backend fails (likely 401/500 because Edge Functions aren't deployed),
+        // If the backend fails (likely 401/500 because Edge Functions aren't deployed or secrets missing),
         // offer the user a way to test the features anyway.
-        const shouldSimulate = window.confirm(
-            "Connection to Payment Server failed (Backend not deployed).\n\n" + 
-            "Would you like to simulate a successful payment to test the Pro features (AI Scanning & Meal Plans)?"
-        );
+        
+        // Specific check for the user's reported error (Status 400 usually means Missing Secret or Bad Request)
+        const errorMessage = typeof err === 'object' ? JSON.stringify(err) : String(err);
+        const isBackendConfigError = errorMessage.includes('400') || errorMessage.includes('401') || errorMessage.includes('500');
+
+        let message = "Connection to Payment Server failed.\n\n";
+        if (isBackendConfigError) {
+            message += "It looks like the Backend Edge Function is not deployed or missing the STRIPE_SECRET_KEY.\n\n";
+        }
+        message += "Would you like to simulate a successful payment to test the Pro features (AI Scanning & Meal Plans)?";
+
+        const shouldSimulate = window.confirm(message);
 
         if (shouldSimulate) {
             let targetTier = SubscriptionTier.Standard;
