@@ -3,11 +3,12 @@ import { SUBSCRIPTION_PLANS } from '../constants';
 import { SubscriptionTier } from '../types';
 import { stripeService } from '../services/stripeService';
 import { userService } from '../services/supabaseService';
-import { Check, ShieldCheck, Loader2 } from 'lucide-react';
+import { Check, ShieldCheck, Loader2, AlertTriangle, XCircle } from 'lucide-react';
 
 const Settings: React.FC = () => {
   const [currentPlan, setCurrentPlan] = useState<SubscriptionTier>(SubscriptionTier.Free);
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -34,12 +35,48 @@ const Settings: React.FC = () => {
       }
   };
 
+  const handleCancel = async () => {
+      if (!window.confirm("WARNING: Cancelling will immediately revert your account to the Free tier. You will lose access to Pro features. Are you sure?")) {
+          return;
+      }
+
+      setIsCancelling(true);
+      try {
+          await stripeService.cancelSubscription();
+          // Force local update
+          await userService.updateProfile({ }); // Trigger a refresh if needed, but best to reload or manually set state
+          // Manually downgrade local state for immediate feedback
+          await userService.upgradeDemoTier(SubscriptionTier.Free); // Re-use this helper to force local state
+          setCurrentPlan(SubscriptionTier.Free);
+          alert("Subscription terminated. Account reverted to Free plan.");
+      } catch (error: any) {
+          alert(`Cancellation Failed: ${error.message}`);
+      } finally {
+          setIsCancelling(false);
+      }
+  };
+
   return (
     <div className="max-w-5xl mx-auto pt-4 pb-20 animate-fade-in">
-      <div className="text-center mb-10">
-        <h2 className="text-3xl font-bold text-brand-900 font-mono tracking-tight uppercase">
-            PLAN STATUS: <span className="bg-brand-900 text-white px-2 py-1">{currentPlan}</span>
-        </h2>
+      <div className="glass-panel p-8 rounded-2xl mb-10 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+            <h2 className="text-3xl font-bold text-brand-900 font-mono tracking-tight uppercase">
+                PLAN_STATUS: <span className="bg-brand-900 text-white px-2 py-1">{currentPlan}</span>
+            </h2>
+            <p className="text-xs text-brand-500 font-mono mt-2 uppercase tracking-widest">
+                {currentPlan === SubscriptionTier.Free ? 'Basic Access Level' : 'Premium Features Unlocked'}
+            </p>
+        </div>
+        {currentPlan !== SubscriptionTier.Free && (
+            <button 
+                onClick={handleCancel}
+                disabled={isCancelling}
+                className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-all font-bold uppercase text-xs tracking-widest"
+            >
+                {isCancelling ? <Loader2 className="animate-spin" size={16} /> : <XCircle size={16} />}
+                {isCancelling ? 'Terminating...' : 'Cancel Subscription'}
+            </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
@@ -53,7 +90,7 @@ const Settings: React.FC = () => {
                 key={plan.tier} 
                 className={`glass-panel p-8 rounded-xl flex flex-col transition-all duration-300 relative ${
                     isPro ? 'border-brand-900 shadow-xl transform md:-translate-y-4' : 'border-white/40'
-                }`}
+                } ${isCurrent ? 'ring-2 ring-brand-900 ring-offset-2 ring-offset-[#cbd5e1]' : ''}`}
             >
                 {isPro && (
                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-900 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded">
@@ -79,19 +116,23 @@ const Settings: React.FC = () => {
                     ))}
                 </ul>
 
-                <button 
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={isCurrent || isLoading}
-                    className={`w-full py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all border ${
-                        isCurrent
-                        ? 'bg-green-100 text-green-800 border-green-200 cursor-default'
-                        : isPro
-                            ? 'bg-brand-900 text-white border-brand-900 hover:bg-black'
-                            : 'bg-transparent text-brand-900 border-brand-300 hover:bg-white'
-                    }`}
-                >
-                    {isLoading ? <Loader2 className="animate-spin mx-auto" size={16} /> : isCurrent ? 'Active Plan' : `Select ${plan.name}`}
-                </button>
+                {isCurrent ? (
+                    <div className="w-full py-3 rounded-lg font-bold text-xs uppercase tracking-widest text-center bg-green-100 text-green-800 border border-green-200 cursor-default flex items-center justify-center gap-2">
+                        <Check size={14} /> Active Plan
+                    </div>
+                ) : (
+                    <button 
+                        onClick={() => handleSubscribe(plan)}
+                        disabled={isLoading}
+                        className={`w-full py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all border ${
+                            isPro
+                                ? 'bg-brand-900 text-white border-brand-900 hover:bg-black'
+                                : 'bg-transparent text-brand-900 border-brand-300 hover:bg-white'
+                        }`}
+                    >
+                        {isLoading ? <Loader2 className="animate-spin mx-auto" size={16} /> : `Select ${plan.name}`}
+                    </button>
+                )}
             </div>
           );
         })}
@@ -100,6 +141,18 @@ const Settings: React.FC = () => {
       <div className="mt-12 text-center text-brand-400 text-xs font-mono uppercase tracking-widest flex items-center justify-center gap-2">
          <ShieldCheck size={14} /> Encrypted Transaction via Stripe
       </div>
+      
+      {currentPlan !== SubscriptionTier.Free && (
+         <div className="mt-8 p-4 border border-red-200 bg-red-50/50 rounded-lg text-center md:hidden">
+            <p className="text-xs text-red-800 font-bold mb-2">Need to cancel?</p>
+            <button 
+                onClick={handleCancel}
+                className="text-xs text-red-600 underline font-mono"
+            >
+                Tap to terminate contract
+            </button>
+         </div>
+      )}
     </div>
   );
 };

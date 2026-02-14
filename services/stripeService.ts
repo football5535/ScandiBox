@@ -13,7 +13,6 @@ export const stripeService = {
     const returnUrl = window.location.origin;
     
     // We use a direct fetch here to ensure we get the JSON error body from the Edge Function
-    // if it fails (e.g. 500 Internal Server Error due to missing environment variables).
     const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
         method: 'POST',
         headers: {
@@ -28,10 +27,7 @@ export const stripeService = {
         try {
             const errorData = await response.json();
             if (errorData.error) {
-                // Clean up the error message if it contains the API key for security/cleanliness in UI
                 errorMessage = errorData.error.replace(/mk_[a-zA-Z0-9]+/, '***');
-                
-                // If the error message from backend (Stripe) indicates auth failure
                 if (errorData.error.includes("Invalid API Key")) {
                     errorMessage = "Payment System Configuration Error (Invalid API Key)";
                 }
@@ -57,6 +53,25 @@ export const stripeService = {
     const { error } = await (stripe as any).redirectToCheckout({ sessionId: data.sessionId });
     if (error) {
         throw error;
+    }
+  },
+
+  async cancelSubscription(): Promise<void> {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/cancel-subscription`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+    });
+
+    if (!response.ok) {
+        let msg = "Failed to cancel subscription.";
+        try {
+            const json = await response.json();
+            if (json.error) msg = json.error;
+        } catch(e) {}
+        throw new Error(msg);
     }
   }
 };
