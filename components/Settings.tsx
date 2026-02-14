@@ -57,8 +57,14 @@ const Settings: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto pt-2 pb-20 animate-fade-in">
       <div className="text-center mb-8 md:mb-12">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-brand-900 tracking-tight">Your Plan</h2>
-        <p className="text-gray-500 mt-2 md:mt-3 text-base md:text-lg font-medium">Invest in your kitchen intelligence.</p>
+        <h2 className="text-3xl md:text-4xl font-extrabold text-brand-900 tracking-tight">
+            Current Plan: <span className="text-[#4275ff]">{currentPlan}</span>
+        </h2>
+        <p className="text-gray-500 mt-2 md:mt-3 text-base md:text-lg font-medium">
+            {currentPlan === SubscriptionTier.Free 
+                ? "Upgrade to unlock advanced AI features." 
+                : "Thank you for investing in your kitchen intelligence."}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-end">

@@ -98,7 +98,7 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, email, subscription_tier)
-  values (new.id, new.email, 'Standard'); -- Default to Standard for demo
+  values (new.id, new.email, 'Free'); -- Default to 'Free' for new registrations
   return new;
 end;
 $$ language plpgsql security definer;
