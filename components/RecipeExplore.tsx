@@ -85,12 +85,20 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
           return !inventoryNames.some(invName => ing.toLowerCase().includes(invName));
       });
 
-      // If all matched, just add all of them? No, let's add the ones we filtered.
-      const ingredientsToAdd = missingIngredients.length > 0 ? missingIngredients : recipe.ingredients;
+      // Provide Smart Feedback
+      const foundCount = recipe.ingredients.length - missingIngredients.length;
+      
+      if (missingIngredients.length === 0) {
+          alert(t('explore.smartAddResult').replace('{found}', recipe.ingredients.length.toString()).replace('{added}', '0'));
+          setAddedIngredientsIds(prev => new Set(prev).add(recipe.id));
+          return;
+      }
 
-      for (const ing of ingredientsToAdd) {
+      for (const ing of missingIngredients) {
           await shoppingService.addItem(ing);
       }
+      
+      alert(t('explore.smartAddResult').replace('{found}', foundCount.toString()).replace('{added}', missingIngredients.length.toString()));
       setAddedIngredientsIds(prev => new Set(prev).add(recipe.id));
   };
 

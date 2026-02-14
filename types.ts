@@ -36,6 +36,7 @@ export interface Recipe {
   timeEstimate: string;
   calories?: number;
   user_id?: string; // Optional for DB saved ones
+  day?: string; // For weekly planning
 }
 
 export enum SubscriptionTier {

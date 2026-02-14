@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { InventoryItem, Recipe, Category } from "../types";
 import { GEMINI_SYSTEM_INSTRUCTION } from "../constants";
@@ -90,6 +91,53 @@ export class GeminiService {
     } catch (error) {
         return [];
     }
+  }
+
+  async generateWeeklyPlan(inventory: InventoryItem[], householdSize: number = 1, dietaryRestrictions: string[] = []): Promise<Recipe[]> {
+      if (!this.ai) return [];
+      
+      const inventoryList = inventory.map(i => `${i.quantity} ${i.name}`).join(', ');
+      const dietString = dietaryRestrictions.length > 0 ? `Dietary restrictions: ${dietaryRestrictions.join(', ')}.` : '';
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+      try {
+          const response = await this.ai.models.generateContent({
+              model: 'gemini-3-flash-preview',
+              contents: `Generate a 7-day dinner plan. Ingredients available: ${inventoryList}. Household: ${householdSize} people. ${dietString}.
+              Try to use available ingredients but add necessary ones.
+              Return a JSON array of 7 recipe objects, one for each day.
+              Each object must have a 'day' property (Monday, Tuesday...).`,
+              config: {
+                  responseMimeType: "application/json",
+                  responseSchema: {
+                      type: Type.ARRAY,
+                      items: {
+                          type: Type.OBJECT,
+                          properties: {
+                              day: { type: Type.STRING },
+                              title: { type: Type.STRING },
+                              description: { type: Type.STRING },
+                              ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+                              instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                              timeEstimate: { type: Type.STRING },
+                              matchScore: { type: Type.INTEGER }
+                          }
+                      }
+                  }
+              }
+          });
+          const text = response.text || "[]";
+          const recipes = JSON.parse(cleanJsonString(text));
+          // Ensure correct day mapping just in case
+          return recipes.map((r: any, i: number) => ({ 
+              ...r, 
+              id: `week-${Date.now()}-${i}`,
+              day: r.day || days[i] 
+          }));
+      } catch (e) {
+          console.error("Weekly plan generation failed", e);
+          return [];
+      }
   }
 
   async generateDiscoverRecipes(mode: 'inventory' | 'random', inventory: InventoryItem[] = []): Promise<Recipe[]> {

@@ -61,6 +61,25 @@ export const inventoryService = {
     const items = await this.getItems();
     const updated = items.filter(i => i.id !== id);
     localStorage.setItem(LOCAL_INV_KEY, JSON.stringify(updated));
+  },
+
+  async batchDeleteItems(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    
+    if (supabase) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                 await supabase.from('inventory_items').delete().in('id', ids).eq('user_id', user.id);
+                 return;
+            }
+        } catch (e) {}
+    }
+    
+    // Fallback
+    const items = await this.getItems();
+    const updated = items.filter(i => !ids.includes(i.id));
+    localStorage.setItem(LOCAL_INV_KEY, JSON.stringify(updated));
   }
 };
 

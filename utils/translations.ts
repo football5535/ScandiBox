@@ -56,7 +56,8 @@ export const translations = {
       save: "Save Recipe",
       saved: "Saved",
       addMissing: "Add Missing to Shop",
-      added: "Added to List"
+      added: "Added to List",
+      smartAddResult: "Smart Check Complete: Found {found} items in inventory. Added {added} items to shopping list."
     },
     shopping: {
       title: "SUPPLY_LOG",
@@ -68,17 +69,28 @@ export const translations = {
     mealPlanner: {
       title: "MEAL_OS",
       config: "Config",
-      generate: "GENERATE PLAN",
-      generating: "GENERATING...",
+      generate: "GENERATE WEEKLY PLAN",
+      generating: "CALCULATING VECTORS...",
       locked: "LOCKED (PRO)",
       systemReady: "SYSTEM READY",
       awaitingCommand: "Awaiting command to generate culinary manifest.",
       sequence: "Sequence",
       tabs: {
-        generate: "Generate (AI)",
-        saved: "Saved Recipes"
+        generate: "Weekly Plan",
+        saved: "Cookbook"
       },
-      noSaved: "No saved recipes yet. Go to Explore to find some."
+      noSaved: "No saved recipes yet. Go to Explore to find some.",
+      cookNow: "INITIATE COOK MODE",
+      addToShop: "ADD TO SHOP",
+      step: "STEP",
+      of: "OF",
+      completed: "EXECUTION COMPLETE",
+      inventoryCheck: "INVENTORY DEDUCTION PROTOCOL",
+      inventoryCheckDesc: "Select items used to remove them from inventory:",
+      confirmDeduction: "CONFIRM REMOVAL",
+      finish: "FINISH SESSION",
+      regenerate: "REGENERATE PLAN",
+      startCooking: "START COOKING"
     },
     family: {
       title: "HOUSEHOLD_CONFIG",
@@ -157,7 +169,8 @@ export const translations = {
       save: "Lagre Oppskrift",
       saved: "Lagret",
       addMissing: "Legg til manglende i liste",
-      added: "Lagt til liste"
+      added: "Lagt til liste",
+      smartAddResult: "Smart Sjekk Ferdig: Fant {found} varer i lageret. La til {added} varer i handlelisten."
     },
     shopping: {
       title: "FORSYNINGSLOGG",
@@ -169,17 +182,28 @@ export const translations = {
     mealPlanner: {
       title: "MÅLTID_OS",
       config: "Konfig",
-      generate: "GENERER PLAN",
-      generating: "GENERERER...",
+      generate: "GENERER UKESMENY",
+      generating: "BEREGNER VEKTORER...",
       locked: "LÅST (PRO)",
       systemReady: "SYSTEM KLART",
       awaitingCommand: "Venter på kommando for å generere kulinarisk manifest.",
       sequence: "Sekvens",
       tabs: {
-        generate: "Generer (AI)",
-        saved: "Lagrede Oppskrifter"
+        generate: "Ukesmeny",
+        saved: "Kokebok"
       },
-      noSaved: "Ingen lagrede oppskrifter ennå. Gå til Utforsk for å finne noen."
+      noSaved: "Ingen lagrede oppskrifter ennå. Gå til Utforsk for å finne noen.",
+      cookNow: "INITIER KOKKEMODUS",
+      addToShop: "LEGG TIL LISTE",
+      step: "STEG",
+      of: "AV",
+      completed: "GJENNOMFØRING FULLFØRT",
+      inventoryCheck: "LAGERREDUKSJONS PROTOKOLL",
+      inventoryCheckDesc: "Velg varer som skal fjernes fra lageret:",
+      confirmDeduction: "BEKREFT FJERNING",
+      finish: "AVSLUTT ØKT",
+      regenerate: "REGENERER PLAN",
+      startCooking: "START MATLAGING"
     },
     family: {
       title: "HUSHOLDNING_KONFIG",
