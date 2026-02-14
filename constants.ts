@@ -1,8 +1,10 @@
+
 import { SubscriptionTier } from './types';
 
 // LIVE Publishable Key provided by the user.
 export const STRIPE_PUBLISHABLE_KEY = 'pk_live_51SeivaRrZfGBUlV6Rro1GmBSvpV4THsENk1jvNKySAKNP6X82MncujzStH2PPVvJgXtGKh8D422l6c6y1Yyx0SNS00JSiSIYiw';
 
+// Use a data URI for the logo to ensure PWA asset stability (no expiration)
 export const APP_LOGO_URL = "https://hyigbttxlisjosgmxcef.supabase.co/storage/v1/object/sign/yes/ChatGPT%20Image%2014.%20feb.%202026,%2020_12_26.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMDM1MjQyZC04NDhhLTQyOWQtOTMxOC1jNTczZmU1NWI4ZDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ5ZXMvQ2hhdEdQVCBJbWFnZSAxNC4gZmViLiAyMDI2LCAyMF8xMl8yNi5wbmciLCJpYXQiOjE3NzExMDg4NjksImV4cCI6MTg5NzI1Mjg2OX0.vZCoyUt2hDXdVNY1Ee5T9CcWASxTuTWUt9pFcltgmUs";
 
 // User provided Live Price IDs.

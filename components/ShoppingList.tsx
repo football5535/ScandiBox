@@ -75,11 +75,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
     const checkedCount = items.filter(i => i.isChecked).length;
     if (checkedCount === 0) return;
 
-    if (userTier === SubscriptionTier.Free) {
-        alert(t('shopping.upgradeToMove'));
-        return;
-    }
-
+    // Feature unlocked for everyone now
+    
     // Set default date to 1 week from now
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
@@ -202,11 +199,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
             <div className="fixed bottom-20 md:bottom-8 left-0 right-0 p-4 z-40 flex justify-center animate-fade-in">
                 <button
                     onClick={handleFinishTripClick}
-                    className={`flex items-center justify-center px-8 py-4 rounded-full font-bold shadow-2xl transition-all transform hover:scale-105 border-2 ${
-                        userTier === SubscriptionTier.Free
-                        ? 'bg-gray-800 text-white border-gray-700' 
-                        : 'bg-green-500 text-black border-green-400 hover:bg-green-400'
-                    }`}
+                    className="flex items-center justify-center px-8 py-4 rounded-full font-bold shadow-2xl transition-all transform hover:scale-105 border-2 bg-green-500 text-black border-green-400 hover:bg-green-400"
                 >
                     <PackageCheck className="mr-3" size={20} />
                     <div className="flex flex-col items-start leading-none">
@@ -215,9 +208,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
                             {checkedItemsCount} {checkedItemsCount === 1 ? 'item' : 'items'} selected
                         </span>
                     </div>
-                    {userTier === SubscriptionTier.Free && (
-                        <div className="ml-3 px-2 py-0.5 bg-gray-600 text-[9px] rounded uppercase text-white">Pro Feature</div>
-                    )}
                 </button>
             </div>
         )}
