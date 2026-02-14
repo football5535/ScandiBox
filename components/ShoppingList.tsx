@@ -95,9 +95,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
      let count = 0;
      
      for (const item of checkedItems) {
-         // Default logic since we don't know exact category without AI.
-         // In a real app we might ask Gemini to classify these too, but for speed we use 'Other' or try to reuse logic.
-         
          const diff = new Date(tripExpiryDate).getTime() - new Date().getTime();
          const days = Math.ceil(diff / (1000 * 3600 * 24));
 
@@ -122,44 +119,29 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
   const checkedItemsCount = items.filter(i => i.isChecked).length;
 
   return (
-    <div className="space-y-6 animate-fade-in pt-4">
+    <div className="space-y-6 animate-fade-in pt-4 pb-24">
+        {/* Header */}
         <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
                 <h2 className="text-3xl font-bold text-brand-900 tracking-tight font-mono">{t('shopping.title')}</h2>
             </div>
             
-            <div className="flex gap-2">
-                {checkedItemsCount > 0 && (
-                    <button
-                        onClick={handleFinishTripClick}
-                        className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all border ${
-                            userTier === SubscriptionTier.Free
-                            ? 'bg-gray-100 text-gray-400 border-gray-200' 
-                            : 'bg-brand-900 text-white border-brand-900 hover:bg-black'
-                        }`}
-                        title={userTier === SubscriptionTier.Free ? "Available on Standard Plan" : ""}
-                    >
-                        <PackageCheck className="mr-2" size={16} />
-                        {t('shopping.finishTrip')}
-                    </button>
-                )}
-
-                <button
-                    onClick={generateSmartList}
-                    disabled={aiLoading}
-                    className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all border ${
-                        userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax
-                        ? 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
-                        : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                    }`}
-                >
-                    {aiLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Sparkles className="mr-2" size={16} />}
-                    {userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax ? t('shopping.autoReplenish') : t('shopping.autoPro')}
-                </button>
-            </div>
+            <button
+                onClick={generateSmartList}
+                disabled={aiLoading}
+                className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all border ${
+                    userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax
+                    ? 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
+                    : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                }`}
+            >
+                {aiLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <Sparkles className="mr-2" size={16} />}
+                {userTier === SubscriptionTier.Pro || userTier === SubscriptionTier.ProMax ? t('shopping.autoReplenish') : t('shopping.autoPro')}
+            </button>
         </div>
 
-        <div className="glass-panel p-2 rounded-xl border border-brand-200 flex gap-2">
+        {/* Input Area */}
+        <div className="glass-panel p-2 rounded-xl border border-brand-200 flex gap-2 sticky top-24 z-10 shadow-xl">
             <input 
                 type="text" 
                 value={newItemName}
@@ -190,7 +172,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
                         key={item.id} 
                         className={`flex items-center justify-between p-4 glass-card rounded-lg border transition-all ${
                             item.isChecked 
-                            ? 'opacity-50' 
+                            ? 'opacity-50 bg-brand-50' 
                             : ''
                         }`}
                     >
@@ -212,6 +194,31 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ inventory }) => {
                         </button>
                     </div>
                 ))}
+            </div>
+        )}
+
+        {/* STICKY BOTTOM ACTION BAR FOR FINISHING TRIP */}
+        {checkedItemsCount > 0 && (
+            <div className="fixed bottom-20 md:bottom-8 left-0 right-0 p-4 z-40 flex justify-center animate-fade-in">
+                <button
+                    onClick={handleFinishTripClick}
+                    className={`flex items-center justify-center px-8 py-4 rounded-full font-bold shadow-2xl transition-all transform hover:scale-105 border-2 ${
+                        userTier === SubscriptionTier.Free
+                        ? 'bg-gray-800 text-white border-gray-700' 
+                        : 'bg-green-500 text-black border-green-400 hover:bg-green-400'
+                    }`}
+                >
+                    <PackageCheck className="mr-3" size={20} />
+                    <div className="flex flex-col items-start leading-none">
+                        <span className="text-sm uppercase tracking-widest">{t('shopping.finishTrip')}</span>
+                        <span className="text-[10px] opacity-80 font-mono mt-1">
+                            {checkedItemsCount} {checkedItemsCount === 1 ? 'item' : 'items'} selected
+                        </span>
+                    </div>
+                    {userTier === SubscriptionTier.Free && (
+                        <div className="ml-3 px-2 py-0.5 bg-gray-600 text-[9px] rounded uppercase text-white">Pro Feature</div>
+                    )}
+                </button>
             </div>
         )}
 

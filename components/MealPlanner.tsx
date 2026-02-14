@@ -71,11 +71,41 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
     }
   };
 
-  const addMissingIngredients = async (recipe: Recipe) => {
-      const inventoryNames = inventory.map(i => i.name.toLowerCase());
-      const missingIngredients = recipe.ingredients.filter(ing => {
-          return !inventoryNames.some(invName => ing.toLowerCase().includes(invName));
+  // Helper to extract number from string
+  const parseQuantity = (str: string): number => {
+    const match = str.match(/(\d+(\.\d+)?)/);
+    return match ? parseFloat(match[0]) : 1;
+  };
+
+  // Smart Check Logic
+  const checkIngredientAvailability = (recipeIngredient: string): boolean => {
+      const recName = recipeIngredient.toLowerCase();
+      const recQty = parseQuantity(recName);
+
+      // Find matching items in inventory
+      // Matches if inventory name contains recipe noun (e.g. "extra virgin olive oil" has "oil")
+      // OR if recipe name contains inventory name (e.g. "chopped carrots" has "carrots")
+      const matches = inventory.filter(item => {
+          const invName = item.name.toLowerCase();
+          return invName.includes(recName.replace(/[0-9]/g, '').trim()) || 
+                 recName.includes(invName) ||
+                 (invName.includes("oil") && recName.includes("oil")); // Specific catch for oils
       });
+
+      if (matches.length === 0) return false;
+
+      // Check quantities
+      let totalInvQty = 0;
+      matches.forEach(m => {
+          totalInvQty += parseQuantity(m.quantity);
+      });
+
+      // If user has 2 carrots but recipe needs 3, return false (missing)
+      return totalInvQty >= recQty;
+  };
+
+  const addMissingIngredients = async (recipe: Recipe) => {
+      const missingIngredients = recipe.ingredients.filter(ing => !checkIngredientAvailability(ing));
 
       const foundCount = recipe.ingredients.length - missingIngredients.length;
       
@@ -396,9 +426,15 @@ const MealPlanner: React.FC<MealPlannerProps> = ({ inventory }) => {
                                         <div>
                                             <h4 className="font-bold text-brand-400 uppercase tracking-widest text-[10px] mb-3">Ingredients</h4>
                                             <ul className="space-y-2">
-                                                {recipe.ingredients.map((ing, i) => (
-                                                    <li key={i} className="text-xs font-bold text-brand-800 bg-brand-50 px-3 py-2 rounded">{ing}</li>
-                                                ))}
+                                                {recipe.ingredients.map((ing, i) => {
+                                                    const available = checkIngredientAvailability(ing);
+                                                    return (
+                                                        <li key={i} className={`text-xs font-bold px-3 py-2 rounded flex justify-between items-center ${available ? 'bg-green-100 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                                                            <span>{ing}</span>
+                                                            {available ? <Check size={12} /> : <ShoppingCart size={12} className="opacity-50" />}
+                                                        </li>
+                                                    );
+                                                })}
                                             </ul>
                                         </div>
                                         <div>

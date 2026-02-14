@@ -79,11 +79,36 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
       }
   };
 
-  const addMissingIngredients = async (recipe: Recipe) => {
-      const inventoryNames = inventory.map(i => i.name.toLowerCase());
-      const missingIngredients = recipe.ingredients.filter(ing => {
-          return !inventoryNames.some(invName => ing.toLowerCase().includes(invName));
+  // Helper to extract number from string
+  const parseQuantity = (str: string): number => {
+    const match = str.match(/(\d+(\.\d+)?)/);
+    return match ? parseFloat(match[0]) : 1;
+  };
+
+  // Smart Check Logic (Consistent with MealPlanner)
+  const checkIngredientAvailability = (recipeIngredient: string): boolean => {
+      const recName = recipeIngredient.toLowerCase();
+      const recQty = parseQuantity(recName);
+
+      const matches = inventory.filter(item => {
+          const invName = item.name.toLowerCase();
+          return invName.includes(recName.replace(/[0-9]/g, '').trim()) || 
+                 recName.includes(invName) ||
+                 (invName.includes("oil") && recName.includes("oil")); 
       });
+
+      if (matches.length === 0) return false;
+
+      let totalInvQty = 0;
+      matches.forEach(m => {
+          totalInvQty += parseQuantity(m.quantity);
+      });
+
+      return totalInvQty >= recQty;
+  };
+
+  const addMissingIngredients = async (recipe: Recipe) => {
+      const missingIngredients = recipe.ingredients.filter(ing => !checkIngredientAvailability(ing));
 
       const foundCount = recipe.ingredients.length - missingIngredients.length;
       
@@ -227,7 +252,11 @@ const RecipeExplore: React.FC<RecipeExploreProps> = ({ inventory }) => {
                       
                       <div className="flex flex-wrap gap-2 mb-4">
                         {recipe.ingredients.slice(0, 4).map((ing, i) => (
-                            <span key={i} className="text-[10px] bg-white border border-brand-200 text-brand-600 px-2 py-1 rounded font-bold">
+                            <span key={i} className={`text-[10px] border px-2 py-1 rounded font-bold ${
+                                checkIngredientAvailability(ing) 
+                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                : 'bg-white text-brand-600 border-brand-200'
+                            }`}>
                                 {ing}
                             </span>
                         ))}
