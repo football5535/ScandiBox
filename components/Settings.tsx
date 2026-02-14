@@ -33,15 +33,7 @@ const Settings: React.FC = () => {
           await stripeService.checkout(plan.priceId);
       } catch (error: any) {
           console.error("Subscription Error:", error);
-          
-          // FALLBACK FOR DEMO PURPOSES
-          // Since we might be running in a demo environment with invalid keys, 
-          // we allow the user to activate the tier locally.
-          if (confirm(`Payment System Error: ${error.message}\n\nSince this is a demo, would you like to bypass payment and activate ${plan.name} features locally?`)) {
-              await userService.upgradeDemoTier(plan.tier);
-              await loadProfile();
-              alert(`Success! You are now on the ${plan.name} plan (Demo Mode).`);
-          }
+          alert(`Payment Failed: ${error.message}\n\nPlease contact support if this persists.`);
       } finally {
           setLoadingPriceId(null);
       }
@@ -130,11 +122,6 @@ const Settings: React.FC = () => {
              <ShieldCheck size={16} />
              Secure payment by Stripe
          </div>
-         {currentPlan === SubscriptionTier.Free && (
-             <p className="text-xs text-orange-400 flex items-center gap-1 mt-2">
-                 <AlertTriangle size={12} /> Running in Demo Mode? Payments may be simulated.
-             </p>
-         )}
       </div>
     </div>
   );

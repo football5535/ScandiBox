@@ -1,21 +1,21 @@
 import { SubscriptionTier } from './types';
 
-// Use the key provided by the user. 
-export const STRIPE_PUBLISHABLE_KEY = 'mk_1T0ojlRp1tnPh0Z83HoIEl9g';
+// LIVE Publishable Key provided by the user.
+export const STRIPE_PUBLISHABLE_KEY = 'pk_live_51SeivaRrZfGBUlV6Rro1GmBSvpV4THsENk1jvNKySAKNP6X82MncujzStH2PPVvJgXtGKh8D422l6c6y1Yyx0SNS00JSiSIYiw';
 
 export const APP_LOGO_URL = "https://hyigbttxlisjosgmxcef.supabase.co/storage/v1/object/sign/yes/ChatGPT%20Image%2014.%20feb.%202026,%2020_12_26.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMDM1MjQyZC04NDhhLTQyOWQtOTMxOC1jNTczZmU1NWI4ZDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ5ZXMvQ2hhdEdQVCBJbWFnZSAxNC4gZmViLiAyMDI2LCAyMF8xMl8yNi5wbmciLCJpYXQiOjE3NzExMDAzMjYsImV4cCI6MTg2NTcwODMyNn0.LCzRwkxTtOPR1579u7DtRXDseqfZS_vxshK6JqUyEDA";
 
-// User provided Price IDs.
+// User provided Live Price IDs.
 export const STRIPE_PRICES = {
-    STANDARD: 'price_1T0oxARp1tnPh0Z8QmmvGbeC',
-    PRO: 'price_1T0oxKRp1tnPh0Z8Tf9EJWJA',
-    PRO_MAX: 'price_1T0oxYRp1tnPh0Z8JvuWAbW9'
+    STANDARD: 'price_1T0qS2RrZfGBUlV6ojPbI7Nw',
+    PRO: 'prod_Tyo40YhcwaRGuS', // Note: User provided a Product ID. Ensure this is mapped to a Price ID in Stripe if possible, or update if this causes issues.
+    PRO_MAX: 'price_1T0qSkRrZfGBUlV6cq3sz6kC'
 };
 
 export const SUBSCRIPTION_PLANS = [
   {
     tier: SubscriptionTier.Standard,
-    price: 5,
+    price: 50,
     name: "Standard",
     priceId: STRIPE_PRICES.STANDARD,
     description: "For the users",
@@ -28,7 +28,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     tier: SubscriptionTier.Pro,
-    price: 10,
+    price: 100,
     name: "Pro",
     priceId: STRIPE_PRICES.PRO,
     description: "For pro users",
@@ -41,7 +41,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     tier: SubscriptionTier.ProMax,
-    price: 20,
+    price: 150,
     name: "Pro Max",
     priceId: STRIPE_PRICES.PRO_MAX,
     description: "For the big guys",

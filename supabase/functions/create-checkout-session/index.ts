@@ -5,7 +5,9 @@
 console.info('create-checkout-session function starting');
 
 const STRIPE_API_BASE = 'https://api.stripe.com/v1';
-const STRIPE_SECRET = (Deno as any).env.get('STRIPE_SECRET_KEY') ?? '';
+// Using the provided secret key directly. 
+// Note: If 'mk_' (Managed Key) is invalid, ensure you provide the 'sk_live_' token from Stripe Dashboard.
+const STRIPE_SECRET = 'mk_1SeivkRrZfGBUlV6TjsYIinO';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,6 +36,10 @@ async function createCheckoutSession(priceId: string, returnUrl: string) {
   if (!resp.ok) {
     const text = await resp.text();
     console.error("Stripe Error:", text);
+    // Explicitly mentioning key issues to help debugging
+    if (resp.status === 401) {
+         throw new Error(`Stripe Authentication Failed. The provided secret key (${STRIPE_SECRET.substring(0, 7)}...) might be invalid or a Managed Key ID.`);
+    }
     throw new Error(`Stripe API error: ${resp.status} ${text}`);
   }
 
@@ -45,7 +51,7 @@ async function createCheckoutSession(priceId: string, returnUrl: string) {
 
   try {
     if (!STRIPE_SECRET) {
-        console.error("STRIPE_SECRET_KEY is missing in environment variables.");
+        console.error("STRIPE_SECRET_KEY is missing/empty.");
         return new Response(JSON.stringify({ error: 'Stripe secret not configured' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 });
     }
 
