@@ -100,14 +100,15 @@ export const inventoryService = {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 // Map camelCase JS properties to snake_case DB columns
+                // Ensure dates are converted to null if empty strings to avoid 400 Bad Request
                 const dbItem = {
                     user_id: user.id,
                     name: newItem.name,
                     category: newItem.category,
                     quantity: newItem.quantity,
                     status: newItem.status,
-                    added_date: newItem.addedDate,
-                    expiry_date: newItem.expiryDate,
+                    added_date: newItem.addedDate || new Date().toISOString(),
+                    expiry_date: newItem.expiryDate || null, 
                     days_until_expiry: newItem.daysUntilExpiry
                 };
 
