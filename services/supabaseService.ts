@@ -72,7 +72,20 @@ export const inventoryService = {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 const { data, error } = await supabase.from('inventory_items').select('*').eq('user_id', user.id);
-                if (!error && data) return data as InventoryItem[];
+                if (!error && data) {
+                    // Map snake_case DB columns to camelCase JS properties
+                    return data.map((i: any) => ({
+                        id: i.id,
+                        name: i.name,
+                        category: i.category,
+                        quantity: i.quantity,
+                        status: i.status,
+                        // Handle potential date naming diffs
+                        addedDate: i.added_date,
+                        expiryDate: i.expiry_date,
+                        daysUntilExpiry: i.days_until_expiry
+                    })) as InventoryItem[];
+                }
             }
         } catch (e) { console.warn("Supabase fetch failed", e); }
     }
@@ -86,12 +99,40 @@ export const inventoryService = {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const itemWithUser = { ...newItem, user_id: user.id };
-                const { data, error } = await supabase.from('inventory_items').insert([itemWithUser]).select().single();
-                if (!error && data) return data as InventoryItem;
+                // Map camelCase JS properties to snake_case DB columns
+                const dbItem = {
+                    user_id: user.id,
+                    name: newItem.name,
+                    category: newItem.category,
+                    quantity: newItem.quantity,
+                    status: newItem.status,
+                    added_date: newItem.addedDate,
+                    expiry_date: newItem.expiryDate,
+                    days_until_expiry: newItem.daysUntilExpiry
+                };
+
+                const { data, error } = await supabase.from('inventory_items').insert([dbItem]).select().single();
+                
+                if (!error && data) {
+                    // Map back to JS object
+                    return {
+                        id: data.id,
+                        name: data.name,
+                        category: data.category,
+                        quantity: data.quantity,
+                        status: data.status,
+                        addedDate: data.added_date,
+                        expiryDate: data.expiry_date,
+                        daysUntilExpiry: data.days_until_expiry
+                    } as InventoryItem;
+                } else {
+                    console.error("Supabase Error:", error);
+                }
             }
         } catch (e) { console.warn("Supabase insert failed", e); }
     }
+    
+    // Local Fallback
     const items = await this.getItems();
     const updated = [newItem, ...items];
     localStorage.setItem(LOCAL_INV_KEY, JSON.stringify(updated));

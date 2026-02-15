@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { translations } from '../utils/translations';
 import { userService, supabase } from '../services/supabaseService';
@@ -12,7 +11,7 @@ type LanguageContextType = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider = ({ children }: { children: ReactNode }) => {
+export const LanguageProvider = ({ children }: { children?: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('en');
 
   const fetchLanguage = async () => {
